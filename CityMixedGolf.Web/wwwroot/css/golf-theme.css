@@ -1,0 +1,256 @@
+:root {
+  --golf-green: #1b3a2d;
+  --golf-green-light: #224a38;
+  --golf-gold: #b8962e;
+  --golf-gold-light: #d4ae4e;
+  --golf-cream: #f5f0e8;
+  --golf-text: #1a1a1a;
+  --golf-muted: #5a5a5a;
+}
+
+/* ── Layout ── */
+body {
+  background-color: var(--golf-cream);
+  color: var(--golf-text);
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+/* ── Navigation ── */
+.navbar-golf {
+  background-color: var(--golf-green);
+  border-bottom: 3px solid var(--golf-gold);
+}
+.navbar-golf .navbar-brand {
+  color: #fff;
+  font-family: Georgia, serif;
+  font-size: 1.1rem;
+}
+.navbar-golf .nav-link {
+  color: rgba(255,255,255,0.7) !important;
+  font-size: 0.875rem;
+}
+.navbar-golf .nav-link:hover,
+.navbar-golf .nav-link.active {
+  color: var(--golf-gold-light) !important;
+}
+.navbar-golf .navbar-toggler {
+  border-color: rgba(255,255,255,0.3);
+}
+
+/* ── Hero band ── */
+.hero-band {
+  background: var(--golf-green);
+  border-bottom: 3px solid var(--golf-gold);
+  padding: 1.75rem 0 1.5rem;
+  color: #fff;
+}
+.hero-band h1 {
+  font-family: Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: normal;
+  margin-bottom: 0.25rem;
+}
+.hero-band p {
+  color: rgba(255,255,255,0.6);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* ── Season chips ── */
+.season-chip {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 2rem;
+  padding: 0.4rem 1rem;
+  text-align: center;
+  display: inline-block;
+  min-width: 80px;
+}
+.season-chip .val {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--golf-gold-light);
+  line-height: 1;
+}
+.season-chip .lbl {
+  display: block;
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+/* ── Panels ── */
+.golf-panel {
+  background: #fff;
+  border: 1px solid #d8d0c2;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+.golf-panel-header {
+  background: var(--golf-green);
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.golf-panel-title {
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.golf-panel-title i { color: var(--golf-gold-light); }
+.golf-panel-link {
+  color: rgba(255,255,255,0.55);
+  font-size: 0.75rem;
+  text-decoration: none;
+}
+.golf-panel-link:hover { color: var(--golf-gold-light); }
+
+/* ── Buttons ── */
+.btn-golf-primary {
+  background: var(--golf-green);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.btn-golf-primary:hover { background: var(--golf-green-light); color: #fff; }
+.btn-golf-gold {
+  background: var(--golf-gold);
+  color: var(--golf-green);
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.btn-golf-gold:hover { background: var(--golf-gold-light); color: var(--golf-green); }
+.btn-golf-outline {
+  background: #fff;
+  color: var(--golf-green);
+  border: 1px solid #a0b8a8;
+  border-radius: 6px;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+}
+.btn-golf-outline:hover { background: #f0f5f1; }
+
+/* ── Badges ── */
+.badge-open    { background: #e6f4ec; color: #1a6e3a; }
+.badge-soon    { background: #fff3e0; color: #a05c00; }
+.badge-closed  { background: #f0f0f0; color: #666; }
+.badge-green-band { background: #e8f5ee; color: #1a6e3a; border-radius: 1rem; padding: 2px 10px; font-size: 0.75rem; font-weight: 500; }
+.badge-red-band   { background: #fdecea; color: #c0392b; border-radius: 1rem; padding: 2px 10px; font-size: 0.75rem; font-weight: 500; }
+.badge-conflict   { background: #fdecea; color: #c0392b; border: 1px solid #f0b8b8; border-radius: 1rem; padding: 2px 8px; font-size: 0.7rem; }
+.badge-override   { background: #e8f0fb; color: #1a4f8a; border: 1px solid #b8d4f0; border-radius: 1rem; padding: 2px 8px; font-size: 0.7rem; }
+.badge-manual     { background: #e8f0fb; color: #1a4f8a; border-radius: 1rem; padding: 2px 8px; font-size: 0.7rem; }
+
+/* ── Tables ── */
+.golf-table { width: 100%; border-collapse: collapse; }
+.golf-table th {
+  background: #f9f6f0;
+  color: var(--golf-muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.4rem 1rem;
+  font-weight: 500;
+  border-bottom: 1px solid #ede8e0;
+}
+.golf-table td {
+  padding: 0.55rem 1rem;
+  font-size: 0.875rem;
+  border-bottom: 1px solid #ede8e0;
+  vertical-align: middle;
+}
+.golf-table tr:last-child td { border-bottom: none; }
+
+/* ── Position dots ── */
+.pos-dot {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 600;
+}
+.pos-1 { background: var(--golf-gold); color: var(--golf-green); }
+.pos-2 { background: #c0c0c0; color: #333; }
+.pos-3 { background: #cd7f32; color: #fff; }
+.pos-n { background: #eee; color: #666; }
+
+/* ── Tee preference buttons ── */
+.tee-btn-group { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.tee-btn {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.9rem;
+  border-radius: 2rem;
+  border: 1px solid #ccc;
+  background: #f9f6f0;
+  color: var(--golf-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tee-btn.active, .tee-btn:hover {
+  background: var(--golf-green);
+  color: #fff;
+  border-color: var(--golf-green);
+}
+
+/* ── Partner selector ── */
+.partner-box { border: 1px solid #ccc; border-radius: 6px; overflow: hidden; }
+.partner-selected {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  background: #f0faf4;
+  border-bottom: 1px solid #c8e8d4;
+}
+.partner-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--golf-green);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 500; color: var(--golf-gold);
+  flex-shrink: 0;
+}
+.partner-dropdown { padding: 0.4rem; }
+.partner-option {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.45rem 0.6rem; border-radius: 4px; cursor: pointer;
+}
+.partner-option:hover { background: #f5f0e8; }
+.partner-option.active { background: #e8f5ee; }
+
+/* ── Draw pairs ── */
+.draw-pair-card {
+  background: #fff;
+  border: 1px solid #d8d0c2;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  display: grid;
+  grid-template-columns: 28px 1fr 1fr 90px 70px;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 6px;
+}
+.draw-pair-card.conflict { border-color: #f0b8b8; background: #fffafa; }
+.draw-pair-card.override { border-color: #b8d4f0; background: #f5f9ff; }
+
+/* ── Alerts ── */
+.alert-golf-success {
+  background: #f0faf4; border-left: 3px solid #1a6e3a;
+  color: #1a6e3a; border-radius: 6px; padding: 0.6rem 0.9rem;
+  font-size: 0.875rem;
+}
+.alert-golf-warning {
+  background: #fff8e6; border-left: 3px solid var(--golf-gold);
+  color: #7a5c00; border-radius: 6px; padding: 0.6rem 0.9rem;
+  font-size: 0.875rem;
+}

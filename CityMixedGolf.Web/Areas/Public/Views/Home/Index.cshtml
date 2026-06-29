@@ -1,0 +1,185 @@
+@{
+    ViewData["Title"] = "Home";
+    var stats = ViewBag.SeasonStats;
+    var upcoming = (List<Competition>)ViewBag.Upcoming;
+    var oomLadies = ViewBag.OomLadies as dynamic;
+    var oomGents = ViewBag.OomGents as dynamic;
+    var results = ViewBag.LatestResults as dynamic;
+}
+
+<div class="hero-band">
+    <div class="container">
+        <h1>@ViewBag.CurrentYear Season</h1>
+        <p>Mixed Golf Section &ndash; results, standings &amp; upcoming competitions</p>
+        <div class="d-flex gap-2 mt-3 flex-wrap">
+            <div class="season-chip"><span class="val">@stats.TotalCompetitions</span><span class="lbl">Competitions</span></div>
+            <div class="season-chip"><span class="val">@stats.Completed</span><span class="lbl">Completed</span></div>
+            <div class="season-chip"><span class="val">@stats.TotalMembers</span><span class="lbl">Members</span></div>
+            <div class="season-chip"><span class="val">@stats.Remaining</span><span class="lbl">Remaining</span></div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <div class="row g-4">
+        <!-- Latest results -->
+        <div class="col-md-6">
+            <div class="golf-panel">
+                <div class="golf-panel-header">
+                    <h2 class="golf-panel-title"><i class="ti ti-trophy"></i> Latest results</h2>
+                    <a href="#" class="golf-panel-link">View all &rarr;</a>
+                </div>
+                <table class="golf-table">
+                    <thead><tr><th>Player</th><th>Score</th><th>Pos</th></tr></thead>
+                    <tbody>
+                    @if (results != null)
+                    {
+                        @foreach (var pair in results)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-500">@pair.GreenBandPlayer.FullName / @pair.RedBandPlayer.FullName</div>
+                                    <div style="font-size:0.75rem;color:var(--golf-muted)">@pair.GroupDraw.Competition.Name &middot; @pair.GroupDraw.Competition.CompetitionDate.ToString("dd MMM")</div>
+                                </td>
+                                <td style="color:var(--golf-muted)">@pair.Score pts</td>
+                                <td>
+                                    <span class="pos-dot @(pair.Position == 1 ? "pos-1" : pair.Position == 2 ? "pos-2" : pair.Position == 3 ? "pos-3" : "pos-n")">@pair.Position</span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="3" class="text-center py-3" style="color:var(--golf-muted)">No results yet this season</td></tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Order of merit -->
+        <div class="col-md-6">
+            <div class="golf-panel">
+                <div class="golf-panel-header">
+                    <h2 class="golf-panel-title"><i class="ti ti-medal"></i> Order of Merit</h2>
+                    <a href="#" class="golf-panel-link">Full table &rarr;</a>
+                </div>
+                <div class="d-flex border-bottom">
+                    <button class="flex-fill py-2 border-0 bg-transparent" style="font-size:0.8rem;border-bottom:2px solid var(--golf-gold)!important;" id="tab-ladies" onclick="showOom(ladies)">Ladies</button>
+                    <button class="flex-fill py-2 border-0 bg-transparent" style="font-size:0.8rem;color:var(--golf-muted);" id="tab-gents" onclick="showOom(gents)">Gents</button>
+                </div>
+                <div id="oom-ladies">
+                    <table class="golf-table">
+                        <thead><tr><th>#</th><th>Player</th><th class="text-end">Best</th><th class="text-end">Pts</th></tr></thead>
+                        <tbody>
+                        @if (oomLadies != null)
+                        {
+                            int rank = 1;
+                            @foreach (var row in oomLadies)
+                            {
+                                <tr>
+                                    <td style="color:@(rank <= 2 ? "var(--golf-gold)" : "var(--golf-muted)");font-weight:500">@rank</td>
+                                    <td>@row.Player.FullName</td>
+                                    <td class="text-end" style="color:var(--golf-muted);font-size:0.8rem">@row.Best</td>
+                                    <td class="text-end fw-500" style="color:var(--golf-green)">@row.Points</td>
+                                </tr>
+                                rank++;
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+                <div id="oom-gents" style="display:none">
+                    <table class="golf-table">
+                        <thead><tr><th>#</th><th>Player</th><th class="text-end">Best</th><th class="text-end">Pts</th></tr></thead>
+                        <tbody>
+                        @if (oomGents != null)
+                        {
+                            int rank = 1;
+                            @foreach (var row in oomGents)
+                            {
+                                <tr>
+                                    <td style="color:@(rank <= 2 ? "var(--golf-gold)" : "var(--golf-muted)");font-weight:500">@rank</td>
+                                    <td>@row.Player.FullName</td>
+                                    <td class="text-end" style="color:var(--golf-muted);font-size:0.8rem">@row.Best</td>
+                                    <td class="text-end fw-500" style="color:var(--golf-green)">@row.Points</td>
+                                </tr>
+                                rank++;
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming competitions -->
+        <div class="col-12">
+            <div class="golf-panel">
+                <div class="golf-panel-header">
+                    <h2 class="golf-panel-title"><i class="ti ti-calendar-event"></i> Upcoming competitions</h2>
+                    <a href="#" class="golf-panel-link">All competitions &rarr;</a>
+                </div>
+                @if (upcoming != null && upcoming.Any())
+                {
+                    @foreach (var comp in upcoming)
+                    {
+                        var isOpen = comp.Status == CompetitionStatus.Open && comp.EntryCloseDate >= DateTime.UtcNow;
+                        var isOpenSoon = comp.EntryOpenDate > DateTime.UtcNow;
+                        <div class="d-flex align-items-center gap-3 px-3 py-2 border-bottom">
+                            <div class="text-center" style="min-width:40px">
+                                <div style="font-size:1.25rem;font-weight:500;color:var(--golf-green);line-height:1">@comp.CompetitionDate.Day</div>
+                                <div style="font-size:0.65rem;text-transform:uppercase;color:var(--golf-muted)">@comp.CompetitionDate.ToString("MMM")</div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-500">@comp.Name</div>
+                                <div style="font-size:0.75rem;color:var(--golf-muted)">
+                                    @comp.Format &middot;
+                                    @if (isOpen) { <span>Entry closes @comp.EntryCloseDate.ToString("dd MMM") &middot; @comp.Entries.Count(e => e.Status == EntryStatus.Entered) entered</span> }
+                                    else if (isOpenSoon) { <span>Entry opens @comp.EntryOpenDate.ToString("dd MMM")</span> }
+                                    else { <span>Entry not yet open</span> }
+                                </div>
+                            </div>
+                            @if (isOpen)
+                            {
+                                @if (User.Identity?.IsAuthenticated == true)
+                                {
+                                    <a asp-area="Member" asp-controller="Entry" asp-action="Enter" asp-route-competitionId="@comp.Id" class="btn btn-golf-primary btn-sm">Enter</a>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-open px-2 py-1 rounded-pill">Entry open</span>
+                                }
+                            }
+                            else if (isOpenSoon)
+                            {
+                                <span class="badge badge-soon px-2 py-1 rounded-pill">Opens soon</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-closed px-2 py-1 rounded-pill">Not open yet</span>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-center py-3" style="color:var(--golf-muted)">No upcoming competitions scheduled.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function showOom(tab) {
+    document.getElementById("oom-ladies").style.display = tab === "ladies" ? "block" : "none";
+    document.getElementById("oom-gents").style.display  = tab === "gents"  ? "block" : "none";
+    document.getElementById("tab-ladies").style.borderBottom = tab === "ladies" ? "2px solid var(--golf-gold)" : "none";
+    document.getElementById("tab-gents").style.borderBottom  = tab === "gents"  ? "2px solid var(--golf-gold)" : "none";
+    document.getElementById("tab-ladies").style.color = tab === "ladies" ? "var(--golf-green)" : "var(--golf-muted)";
+    document.getElementById("tab-gents").style.color  = tab === "gents"  ? "var(--golf-green)" : "var(--golf-muted)";
+}
+</script>
+}

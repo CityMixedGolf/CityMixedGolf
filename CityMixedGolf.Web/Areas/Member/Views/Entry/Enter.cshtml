@@ -1,0 +1,160 @@
+@model CompetitionEntry
+@{
+    ViewData["Title"] = "Enter Competition";
+    var competition = (Competition)ViewBag.Competition;
+    var partners = (List<GolfPlayer>)ViewBag.EligiblePartners;
+    var prevIds = (List<string>)ViewBag.PreviousPartnerIds;
+    var defaultPartnerId = (string?)ViewBag.DefaultPartnerId;
+    var isAmend = ViewBag.ExistingEntry != null;
+}
+
+<div class="hero-band">
+    <div class="container">
+        <h1>@(isAmend ? "Amend Entry" : "Enter Competition")</h1>
+        <p>@competition.Name &ndash; @competition.CompetitionDate.ToString("dddd dd MMMM yyyy")</p>
+    </div>
+</div>
+
+<div class="container mt-4" style="max-width:640px">
+    <form method="post" asp-area="Member" asp-controller="Entry" asp-action="Enter">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="CompetitionId" />
+
+        <!-- Tee preference -->
+        <div class="golf-panel mb-3">
+            <div class="golf-panel-header"><h2 class="golf-panel-title"><i class="ti ti-clock"></i> Tee preference</h2></div>
+            <div class="p-3">
+                <div class="tee-btn-group" id="tee-group">
+                    @foreach (var pref in Enum.GetValues<TeePreference>())
+                    {
+                        <button type="button"
+                                class="tee-btn @(Model.TeePreference == pref ? "active" : "")"
+                                onclick="setTee(this, @pref)"
+                                data-val="@pref">
+                            @(pref == TeePreference.NoPreference ? "No preference" : pref.ToString())
+                        </button>
+                    }
+                </div>
+                <input type="hidden" id="tee-input" asp-for="TeePreference" />
+            </div>
+        </div>
+
+        <!-- Partner preference -->
+        <div class="golf-panel mb-3">
+            <div class="golf-panel-header"><h2 class="golf-panel-title"><i class="ti ti-users"></i> Preferred playing partner <span style="font-size:0.7rem;color:rgba(255,255,255,0.5);font-weight:400">(optional)</span></h2></div>
+            <div class="p-3">
+                <div id="partner-section">
+                    @if (partners.Any())
+                    {
+                        <div class="partner-box mb-2" id="partner-box">
+                            <div class="partner-selected" id="partner-selected">
+                                <div class="partner-avatar" id="pav">
+                                    @{
+                                        var def = partners.FirstOrDefault(p => p.Id == defaultPartnerId) ?? partners.First();
+                                    }
+                                    @def.FirstName[0]@def.LastName[0]
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-500" id="psel-name">@def.FullName</div>
+                                    <div style="font-size:0.75rem;color:var(--golf-muted)" id="psel-meta">Hcp @def.HandicapIndex.ToString("F1") &middot; @def.BandColour band</div>
+                                </div>
+                                @if (prevIds.Contains(def.Id))
+                                {
+                                    <span class="badge badge-green-band" id="psel-badge"><i class="ti ti-history" style="font-size:0.65rem"></i> Previous partner</span>
+                                }
+                                <button type="button" class="btn btn-golf-outline btn-sm" onclick="toggleDrop()">Change</button>
+                            </div>
+                            <div id="partner-drop" style="display:none" class="partner-dropdown">
+                                @if (prevIds.Any(id => partners.Any(p => p.Id == id)))
+                                {
+                                    <div style="font-size:0.7rem;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.05em;padding:0.25rem 0.5rem">Previous partners — most recent first</div>
+                                    @foreach (var p in partners.Where(p => prevIds.Contains(p.Id)).OrderBy(p => prevIds.IndexOf(p.Id)))
+                                    {
+                                        <div class="partner-option @(p.Id == defaultPartnerId ? "active" : "")" onclick="pickPartner(this, @p.Id, @p.FullName, @p.HandicapIndex.ToString("F1"), @p.BandColour, true)">
+                                            <div class="partner-avatar" style="width:26px;height:26px;font-size:0.7rem">@p.FirstName[0]@p.LastName[0]</div>
+                                            <span class="flex-grow-1">@p.FullName</span>
+                                            <span style="font-size:0.75rem;color:var(--golf-muted)">@p.HandicapIndex.ToString("F1")</span>
+                                            <span class="badge badge-green-band">Prev</span>
+                                        </div>
+                                    }
+                                }
+                                @if (partners.Any(p => !prevIds.Contains(p.Id)))
+                                {
+                                    <div style="font-size:0.7rem;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.05em;padding:0.25rem 0.5rem;border-top:1px solid #ede8e0;margin-top:0.25rem">Other eligible players entered</div>
+                                    @foreach (var p in partners.Where(p => !prevIds.Contains(p.Id)))
+                                    {
+                                        <div class="partner-option" onclick="pickPartner(this, @p.Id, @p.FullName, @p.HandicapIndex.ToString("F1"), @p.BandColour, false)">
+                                            <div class="partner-avatar" style="width:26px;height:26px;font-size:0.7rem">@p.FirstName[0]@p.LastName[0]</div>
+                                            <span class="flex-grow-1">@p.FullName</span>
+                                            <span style="font-size:0.75rem;color:var(--golf-muted)">@p.HandicapIndex.ToString("F1")</span>
+                                            <span class="badge badge-closed">New pairing</span>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            <div class="p-2 d-flex align-items-center gap-2" style="background:#f9f6f0;border-top:1px solid #ede8e0">
+                                <input type="checkbox" id="chk-single" name="EnteringAsSingle" value="true" style="accent-color:var(--golf-green)" @(Model.EnteringAsSingle ? "checked" : "") onchange="setSingle(this.checked)" />
+                                <label for="chk-single" style="font-size:0.8rem;color:var(--golf-muted);cursor:pointer">Enter as a single — I am happy to be paired with anyone</label>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert-golf-warning mb-2">No eligible players from the opposite gender have entered yet. You can still enter as a single.</div>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="checkbox" id="chk-single" name="EnteringAsSingle" value="true" checked style="accent-color:var(--golf-green)" />
+                            <label for="chk-single" style="font-size:0.875rem;cursor:pointer">Enter as a single</label>
+                        </div>
+                    }
+                    <input type="hidden" id="partner-input" asp-for="PreferredPartnerId" value="@(Model.EnteringAsSingle ? "" : (defaultPartnerId ?? ""))" />
+                </div>
+                <p style="font-size:0.75rem;color:var(--golf-muted);margin-top:0.5rem"><i class="ti ti-info-circle"></i> Only players of the opposite gender who have entered this competition are shown. Your preference is noted but the final pairing is at the admins discretion.</p>
+            </div>
+        </div>
+
+        <!-- Special requests -->
+        <div class="golf-panel mb-3">
+            <div class="golf-panel-header"><h2 class="golf-panel-title"><i class="ti ti-message"></i> Special requests</h2></div>
+            <div class="p-3">
+                <textarea asp-for="SpecialRequests" class="form-control" rows="3" placeholder="e.g. mobility requirements, preferred tee time window…" style="font-size:0.875rem;border-color:#ccc"></textarea>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-golf-primary flex-grow-1">@(isAmend ? "Save changes" : "Confirm entry")</button>
+            <a asp-area="Member" asp-controller="Entry" asp-action="Index" class="btn btn-golf-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+function setTee(btn, val) {
+    document.querySelectorAll(".tee-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("tee-input").value = val;
+}
+function toggleDrop() {
+    var d = document.getElementById("partner-drop");
+    d.style.display = d.style.display === "none" ? "block" : "none";
+}
+function pickPartner(el, id, name, hcp, band, isPrev) {
+    document.getElementById("partner-input").value = id;
+    document.getElementById("psel-name").textContent = name;
+    document.getElementById("psel-meta").textContent = "Hcp " + hcp + " \u00b7 " + band + " band";
+    document.getElementById("pav").textContent = name.split(" ").map(n => n[0]).join("");
+    var badge = document.getElementById("psel-badge");
+    if (badge) badge.style.display = isPrev ? "inline-flex" : "none";
+    document.querySelectorAll(".partner-option").forEach(o => o.classList.remove("active"));
+    el.classList.add("active");
+    document.getElementById("partner-drop").style.display = "none";
+}
+function setSingle(on) {
+    var box = document.getElementById("partner-selected");
+    var drop = document.getElementById("partner-drop");
+    if (box) { box.style.opacity = on ? "0.35" : "1"; box.style.pointerEvents = on ? "none" : "auto"; }
+    if (drop) drop.style.display = "none";
+    if (on) document.getElementById("partner-input").value = "";
+}
+</script>
+}

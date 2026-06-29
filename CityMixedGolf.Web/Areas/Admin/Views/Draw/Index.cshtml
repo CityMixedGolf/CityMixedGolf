@@ -1,0 +1,203 @@
+@{
+    ViewData["Title"] = "Draw Manager";
+    var comp = (Competition)ViewBag.Competition;
+    var draw = ViewBag.Draw as GroupDraw;
+    var singles = (List<CompetitionEntry>)ViewBag.Singles;
+    var allPlayers = (List<GolfPlayer>)ViewBag.AllPlayers;
+    var greenEntries = comp.Entries.Where(e => e.Status == EntryStatus.Entered && e.Player.BandColour == BandColour.Green).ToList();
+    var redEntries = comp.Entries.Where(e => e.Status == EntryStatus.Entered && e.Player.BandColour == BandColour.Red).ToList();
+}
+
+<div class="hero-band">
+    <div class="container d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+            <h1>@comp.Name — Draw Manager</h1>
+            <p>@comp.CompetitionDate.ToString("dddd dd MMMM yyyy") &middot; @comp.Entries.Count(e => e.Status == EntryStatus.Entered) entries &middot;
+                @if (draw == null) { <span style="color:rgba(255,255,255,0.5)">No draw yet</span> }
+                else if (draw.IsPublished) { <strong style="color:var(--golf-gold-light)">Published</strong> }
+                else { <strong style="color:#ffd180">Draw ready — awaiting review</strong> }
+            </p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            @if (draw == null || !draw.IsPublished)
+            {
+                <form method="post" asp-area="Admin" asp-controller="Draw" asp-action="GenerateDraw">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="competitionId" value="@comp.Id" />
+                    <button type="submit" class="btn btn-golf-outline">
+                        <i class="ti ti-arrows-shuffle"></i> @(draw == null ? "Generate draw" : "Re-run draw")
+                    </button>
+                </form>
+            }
+            @if (draw != null && !draw.IsPublished)
+            {
+                <form method="post" asp-area="Admin" asp-controller="Draw" asp-action="Publish">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="groupDrawId" value="@draw.Id" />
+                    <button type="submit" class="btn btn-golf-gold" onclick="return confirm(Publish draw and notify all entrants?)">
+                        <i class="ti ti-send"></i> Publish &amp; notify
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <div class="row g-4">
+
+        <!-- Sidebar: entries -->
+        <div class="col-md-3">
+            <div class="golf-panel mb-3">
+                <div class="golf-panel-header"><h2 class="golf-panel-title"><i class="ti ti-users"></i> Entries (@comp.Entries.Count(e => e.Status == EntryStatus.Entered))</h2></div>
+                <div class="p-2">
+                    <div style="font-size:0.7rem;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.05em;padding:0.25rem 0.5rem">Green band (@greenEntries.Count)</div>
+                    @foreach (var e in greenEntries)
+                    {
+                        <div class="d-flex align-items-center gap-2 px-2 py-1" style="font-size:0.8rem">
+                            <span style="width:8px;height:8px;border-radius:50%;background:#1a6e3a;flex-shrink:0"></span>
+                            <span class="flex-grow-1">@e.Player.LastName, @e.Player.FirstName[0]</span>
+                            <span style="font-size:0.7rem;color:var(--golf-muted)">@(e.TeePreference == TeePreference.NoPreference ? "—" : e.TeePreference.ToString())</span>
+                            @if (e.EnteringAsSingle) { <span style="font-size:0.65rem;color:var(--golf-muted)">Single</span> }
+                        </div>
+                    }
+                    <div style="font-size:0.7rem;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.05em;padding:0.5rem 0.5rem 0.25rem;border-top:1px solid #ede8e0;margin-top:0.25rem">Red band (@redEntries.Count)</div>
+                    @foreach (var e in redEntries)
+                    {
+                        <div class="d-flex align-items-center gap-2 px-2 py-1" style="font-size:0.8rem">
+                            <span style="width:8px;height:8px;border-radius:50%;background:#c0392b;flex-shrink:0"></span>
+                            <span class="flex-grow-1">@e.Player.LastName, @e.Player.FirstName[0]</span>
+                            <span style="font-size:0.7rem;color:var(--golf-muted)">@(e.TeePreference == TeePreference.NoPreference ? "—" : e.TeePreference.ToString())</span>
+                            @if (e.EnteringAsSingle) { <span style="font-size:0.65rem;color:var(--golf-muted)">Single</span> }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @if (singles.Any())
+            {
+                <div class="golf-panel">
+                    <div class="golf-panel-header"><h2 class="golf-panel-title"><i class="ti ti-user"></i> Singles pool (@singles.Count)</h2></div>
+                    <div class="p-2">
+                        <p style="font-size:0.75rem;color:var(--golf-muted);padding:0.25rem 0.5rem">These players entered as singles. Combine them manually below.</p>
+                        @foreach (var s in singles)
+                        {
+                            <div class="d-flex align-items-center gap-2 px-2 py-1" style="font-size:0.8rem">
+                                <span style="width:8px;height:8px;border-radius:50%;background:@(s.Player.BandColour == BandColour.Green ? "#1a6e3a" : "#c0392b");flex-shrink:0"></span>
+                                <span>@s.Player.FullName</span>
+                            </div>
+                        }
+                        @if (draw != null && singles.Count >= 2)
+                        {
+                            <div class="p-2 border-top mt-1">
+                                <select id="single-green" class="form-select form-select-sm mb-1">
+                                    @foreach (var s in singles.Where(s => s.Player.BandColour == BandColour.Green))
+                                    {
+                                        <option value="@s.Player.Id">@s.Player.FullName (Green)</option>
+                                    }
+                                </select>
+                                <select id="single-red" class="form-select form-select-sm mb-2">
+                                    @foreach (var s in singles.Where(s => s.Player.BandColour == BandColour.Red))
+                                    {
+                                        <option value="@s.Player.Id">@s.Player.FullName (Red)</option>
+                                    }
+                                </select>
+                                <button class="btn btn-golf-outline btn-sm w-100" onclick="combineSingles(@draw.Id)">Combine as pair</button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Main: draw pairs -->
+        <div class="col-md-9">
+            @if (draw != null)
+            {
+                var conflicts = draw.Pairs.Count(p => p.PairStatus == DrawPairStatus.AutoConflict);
+                var overrides = draw.Pairs.Count(p => p.PairStatus == DrawPairStatus.ManualOverride);
+                var fresh = draw.Pairs.Count(p => p.PairStatus == DrawPairStatus.Auto);
+
+                <div class="row g-3 mb-3">
+                    <div class="col-3"><div class="golf-panel text-center p-2"><div style="font-size:1.5rem;font-weight:500;color:var(--golf-green)">@draw.Pairs.Count</div><div style="font-size:0.7rem;color:var(--golf-muted);text-transform:uppercase">Pairs</div></div></div>
+                    <div class="col-3"><div class="golf-panel text-center p-2"><div style="font-size:1.5rem;font-weight:500;color:#c0392b">@conflicts</div><div style="font-size:0.7rem;color:var(--golf-muted);text-transform:uppercase">Conflicts</div></div></div>
+                    <div class="col-3"><div class="golf-panel text-center p-2"><div style="font-size:1.5rem;font-weight:500;color:#1a4f8a">@overrides</div><div style="font-size:0.7rem;color:var(--golf-muted);text-transform:uppercase">Overridden</div></div></div>
+                    <div class="col-3"><div class="golf-panel text-center p-2"><div style="font-size:1.5rem;font-weight:500;color:#1a6e3a">@fresh</div><div style="font-size:0.7rem;color:var(--golf-muted);text-transform:uppercase">Fresh</div></div></div>
+                </div>
+
+                <div class="golf-panel">
+                    <div class="golf-panel-header"><h2 class="golf-panel-title"><i class="ti ti-arrows-shuffle"></i> Drawn pairs</h2></div>
+                    <div class="p-2">
+                        <div class="d-grid mb-1" style="grid-template-columns:28px 1fr 1fr 90px 80px;gap:0.75rem;padding:0.25rem 0.75rem;font-size:0.7rem;color:var(--golf-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.04em">
+                            <span>#</span><span>Green band</span><span>Red band</span><span>Tee</span><span></span>
+                        </div>
+                        @foreach (var pair in draw.Pairs.OrderBy(p => p.PairNumber))
+                        {
+                            var cardClass = pair.PairStatus == DrawPairStatus.AutoConflict ? "conflict" : pair.PairStatus == DrawPairStatus.ManualOverride ? "override" : "";
+                            <div class="draw-pair-card @cardClass" id="pair-@pair.Id">
+                                <span style="font-size:0.75rem;font-weight:500;color:var(--golf-muted)">@pair.PairNumber</span>
+                                <div>
+                                    <div style="font-size:0.875rem;font-weight:500">@pair.GreenBandPlayer.FullName</div>
+                                    <div style="font-size:0.75rem;color:var(--golf-muted)">Hcp @pair.GreenBandPlayer.HandicapIndex.ToString("F1")</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.875rem;font-weight:500">@pair.RedBandPlayer.FullName</div>
+                                    <div style="font-size:0.75rem;color:var(--golf-muted)">Hcp @pair.RedBandPlayer.HandicapIndex.ToString("F1")</div>
+                                </div>
+                                <div style="font-size:0.8rem;color:@(pair.AssignedTee == TeePreference.Early ? "#b86e00" : pair.AssignedTee == TeePreference.Late ? "#1a4f8a" : "var(--golf-muted)")">
+                                    @(pair.AssignedTee == TeePreference.NoPreference ? "—" : pair.AssignedTee.ToString())
+                                </div>
+                                <div class="d-flex gap-1 justify-content-end align-items-center flex-wrap">
+                                    @if (pair.PairStatus == DrawPairStatus.AutoConflict)
+                                    {
+                                        <span class="badge badge-conflict" title="@pair.ConflictNote">@pair.ConflictNote</span>
+                                    }
+                                    @if (pair.PairStatus == DrawPairStatus.ManualOverride)
+                                    {
+                                        <span class="badge badge-manual">Manual</span>
+                                    }
+                                    @if (!draw.IsPublished)
+                                    {
+                                        <button class="btn btn-golf-outline btn-sm" onclick="showOverride(@pair.Id)" title="Override this pair"><i class="ti ti-edit"></i></button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="golf-panel p-4 text-center">
+                    <i class="ti ti-arrows-shuffle" style="font-size:2rem;color:var(--golf-muted)"></i>
+                    <p class="mt-2" style="color:var(--golf-muted)">No draw has been generated yet. Click "Generate draw" to run the algorithm.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function showOverride(pairId) {
+    var green = prompt("Enter new Green band player ID (or leave blank to keep):");
+    var red = prompt("Enter new Red band player ID (or leave blank to keep):");
+    if (!green && !red) return;
+    fetch("/Admin/Draw/ManualOverride", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded", "RequestVerificationToken": document.querySelector("[name=__RequestVerificationToken]")?.value ?? "" },
+        body: new URLSearchParams({ pairId, greenPlayerId: green || "", redPlayerId: red || "" })
+    }).then(r => r.ok && location.reload());
+}
+function combineSingles(drawId) {
+    var green = document.getElementById("single-green")?.value;
+    var red = document.getElementById("single-red")?.value;
+    if (!green || !red) return alert("Select one green and one red band player.");
+    fetch("/Admin/Draw/CombineSingles", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ greenPlayerId: green, redPlayerId: red, groupDrawId: drawId })
+    }).then(r => r.ok && location.reload());
+}
+</script>
+}

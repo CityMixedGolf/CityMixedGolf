@@ -27,12 +27,20 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
-builder.Services.AddSendGrid(options =>
-    options.ApiKey = builder.Configuration["SendGrid:ApiKey"] ?? string.Empty);
+// Only register SendGrid if an API key is configured — avoids startup crash in dev
+var sendGridKey = builder.Configuration["SendGrid:ApiKey"];
+if (!string.IsNullOrWhiteSpace(sendGridKey))
+{
+    builder.Services.AddSendGrid(options => options.ApiKey = sendGridKey);
+    builder.Services.AddScoped<INotificationService, NotificationService>();
+}
+else
+{
+    // Register a no-op notification service so the app runs without SendGrid in dev
+    builder.Services.AddScoped<INotificationService, NoOpNotificationService>();
+}
 
 builder.Services.AddScoped<IDrawService, DrawService>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
-
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
@@ -44,7 +52,6 @@ if (!app.Environment.IsDevelopment())
 }
 else
 {
-    // Seed demo data in development so the homepage has something to show.
     await DataSeeder.SeedAsync(app.Services);
 }
 
@@ -54,12 +61,10 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Area routes must come first
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-// Root / redirects to Public area via the root HomeController
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

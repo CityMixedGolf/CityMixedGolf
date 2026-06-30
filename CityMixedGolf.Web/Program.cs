@@ -42,6 +42,11 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+else
+{
+    // Seed demo data in development so the homepage has something to show.
+    await DataSeeder.SeedAsync(app.Services);
+}
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

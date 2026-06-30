@@ -1,0 +1,77 @@
+@model List<CityMixedGolf.Web.Models.DrawPair>
+@{
+    ViewData["Title"] = "Enter Results";
+    var competition = (CityMixedGolf.Web.Models.Competition)ViewBag.Competition;
+    var draw = (CityMixedGolf.Web.Models.GroupDraw)ViewBag.Draw;
+}
+
+<div class="hero-band">
+    <div class="container d-flex align-items-center justify-content-between">
+        <div>
+            <h1>Enter Results</h1>
+            <p>@competition.Name &ndash; @competition.CompetitionDate.ToString("dd MMMM yyyy")</p>
+        </div>
+        <a asp-area="Admin" asp-controller="Competition" asp-action="Index" class="btn btn-golf-outline">
+            <i class="ti ti-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<div class="container mt-4" style="max-width:720px">
+    <form method="post" asp-area="Admin" asp-controller="Results" asp-action="Enter" asp-route-competitionId="@competition.Id">
+        @Html.AntiForgeryToken()
+
+        <div class="golf-panel mb-3">
+            <div class="golf-panel-header">
+                <h2 class="golf-panel-title"><i class="ti ti-trophy"></i> Pair scores</h2>
+                <span style="color:rgba(255,255,255,0.6);font-size:0.75rem">Stableford points per pair</span>
+            </div>
+            <div class="p-2">
+                <div class="d-grid mb-1" style="grid-template-columns:28px 1fr 1fr 100px;gap:0.75rem;padding:0.3rem 0.75rem;font-size:0.7rem;color:var(--golf-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.04em">
+                    <span>#</span><span>Green band</span><span>Red band</span><span>Score (pts)</span>
+                </div>
+
+                @for (int i = 0; i < Model.Count; i++)
+                {
+                    var pair = Model[i];
+                    <input type="hidden" name="results[@i].PairId" value="@pair.Id" />
+                    <div class="draw-pair-card" style="grid-template-columns:28px 1fr 1fr 100px">
+                        <span style="font-size:0.8rem;font-weight:500;color:var(--golf-muted)">@pair.PairNumber</span>
+                        <div>
+                            <div style="font-size:0.875rem;font-weight:500">@pair.GreenBandPlayer.FullName</div>
+                            <div style="font-size:0.75rem;color:var(--golf-muted)">Hcp @pair.GreenBandPlayer.HandicapIndex.ToString("F1")</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.875rem;font-weight:500">@pair.RedBandPlayer.FullName</div>
+                            <div style="font-size:0.75rem;color:var(--golf-muted)">Hcp @pair.RedBandPlayer.HandicapIndex.ToString("F1")</div>
+                        </div>
+                        <div>
+                            <input type="number"
+                                   name="results[@i].Score"
+                                   value="@pair.Score"
+                                   class="form-control form-control-sm text-center"
+                                   style="border-color:#ccc;font-weight:500;font-size:0.9rem"
+                                   placeholder="pts"
+                                   min="0" max="72" />
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="golf-panel mb-3 p-3" style="background:#f9f6f0;border-color:#d8d0c2">
+            <div style="font-size:0.8rem;color:var(--golf-muted)">
+                <i class="ti ti-info-circle me-1"></i>
+                Positions and order of merit points are calculated automatically on save.
+                Points awarded: <strong>20, 16, 12, 10, 8, 6, 4, 2</strong> for 1st–8th, then 1 point for remaining pairs.
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-golf-primary flex-grow-1">
+                <i class="ti ti-device-floppy"></i> Save results &amp; calculate positions
+            </button>
+            <a asp-area="Admin" asp-controller="Competition" asp-action="Index" class="btn btn-golf-outline">Cancel</a>
+        </div>
+    </form>
+</div>

@@ -250,7 +250,7 @@ public static class DataSeeder
         await db.SaveChangesAsync();
 
         // ── Promote a demo admin ──
-        var adminEmail = "admin@cityofnewcastlegolfclub.com";
+        var adminEmail = "citymixedgolf@gmail.com";
         var admin = await userManager.FindByEmailAsync(adminEmail);
         if (admin == null)
         {
@@ -274,3 +274,4 @@ public static class DataSeeder
             await userManager.AddToRoleAsync(admin, "Admin");
     }
 }
+

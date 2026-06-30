@@ -32,39 +32,48 @@ public class HomeController : Controller
             .Take(8)
             .ToListAsync();
 
-        // Order of merit — ladies
-        var oomLadies = await _db.DrawPairs
+        // Order of merit — pull every published, scored pair this year, then split by
+        // each player's actual Gender rather than which side (green/red) of the pair
+        // they happened to be drawn into. Band colour reflects handicap grouping, not
+        // gender, so a lady can sit in the red band and vice versa.
+        var publishedPairs = await _db.DrawPairs
             .Include(dp => dp.GreenBandPlayer)
-            .Include(dp => dp.GroupDraw).ThenInclude(gd => gd.Competition)
-            .Where(dp => dp.GreenBandPlayer.Gender == Gender.Lady
-                && dp.GroupDraw.IsPublished
-                && dp.OrderOfMeritPoints != null
-                && dp.GroupDraw.Competition.CompetitionDate.Year == currentYear)
-            .GroupBy(dp => dp.GreenBandPlayer)
-            .Select(g => new { Player = g.Key, Points = g.Sum(dp => dp.OrderOfMeritPoints ?? 0), Best = g.Max(dp => dp.Score ?? 0) })
-            .OrderByDescending(x => x.Points)
-            .Take(10)
-            .ToListAsync();
-
-        // Order of merit — gents
-        var oomGents = await _db.DrawPairs
             .Include(dp => dp.RedBandPlayer)
             .Include(dp => dp.GroupDraw).ThenInclude(gd => gd.Competition)
-            .Where(dp => dp.RedBandPlayer.Gender == Gender.Gent
-                && dp.GroupDraw.IsPublished
+            .Where(dp => dp.GroupDraw.IsPublished
                 && dp.OrderOfMeritPoints != null
                 && dp.GroupDraw.Competition.CompetitionDate.Year == currentYear)
-            .GroupBy(dp => dp.RedBandPlayer)
-            .Select(g => new { Player = g.Key, Points = g.Sum(dp => dp.OrderOfMeritPoints ?? 0), Best = g.Max(dp => dp.Score ?? 0) })
+            .ToListAsync();
+
+        var oomEntries = publishedPairs
+            .SelectMany(dp => new[]
+            {
+                new { Player = dp.GreenBandPlayer, Points = dp.OrderOfMeritPoints ?? 0, Score = dp.Score ?? 0 },
+                new { Player = dp.RedBandPlayer, Points = dp.OrderOfMeritPoints ?? 0, Score = dp.Score ?? 0 }
+            })
+            .ToList();
+
+        var oomLadies = oomEntries
+            .Where(e => e.Player.Gender == Gender.Lady)
+            .GroupBy(e => e.Player)
+            .Select(g => new { Player = g.Key, Points = g.Sum(e => e.Points), Best = g.Max(e => e.Score) })
             .OrderByDescending(x => x.Points)
             .Take(10)
-            .ToListAsync();
+            .ToList();
+
+        var oomGents = oomEntries
+            .Where(e => e.Player.Gender == Gender.Gent)
+            .GroupBy(e => e.Player)
+            .Select(g => new { Player = g.Key, Points = g.Sum(e => e.Points), Best = g.Max(e => e.Score) })
+            .OrderByDescending(x => x.Points)
+            .Take(10)
+            .ToList();
 
         // Upcoming competitions
         var upcoming = await _db.Competitions
             .Where(c => c.CompetitionDate >= DateTime.UtcNow
-                && c.Status != CompetitionStatus.Draft
                 && c.Status != CompetitionStatus.Archived)
+            .Include(c => c.Entries)
             .OrderBy(c => c.CompetitionDate)
             .Take(5)
             .ToListAsync();

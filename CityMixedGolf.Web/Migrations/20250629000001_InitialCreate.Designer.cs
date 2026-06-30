@@ -16,7 +16,281 @@ namespace CityMixedGolf.Web.Migrations
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
+            modelBuilder
+                .HasAnnotation("ProductVersion", "8.0.0")
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+                {
+                    b.Property<string>("Id").HasColumnType("nvarchar(450)");
+                    b.Property<string>("ConcurrencyStamp").IsConcurrencyToken().HasColumnType("nvarchar(max)");
+                    b.Property<string>("Name").HasMaxLength(256).HasColumnType("nvarchar(256)");
+                    b.Property<string>("NormalizedName").HasMaxLength(256).HasColumnType("nvarchar(256)");
+                    b.HasKey("Id");
+                    b.HasIndex("NormalizedName").IsUnique().HasDatabaseName("RoleNameIndex").HasFilter("[NormalizedName] IS NOT NULL");
+                    b.ToTable("AspNetRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("ClaimType").HasColumnType("nvarchar(max)");
+                    b.Property<string>("ClaimValue").HasColumnType("nvarchar(max)");
+                    b.Property<string>("RoleId").IsRequired().HasColumnType("nvarchar(450)");
+                    b.HasKey("Id");
+                    b.HasIndex("RoleId");
+                    b.ToTable("AspNetRoleClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("ClaimType").HasColumnType("nvarchar(max)");
+                    b.Property<string>("ClaimValue").HasColumnType("nvarchar(max)");
+                    b.Property<string>("UserId").IsRequired().HasColumnType("nvarchar(450)");
+                    b.HasKey("Id");
+                    b.HasIndex("UserId");
+                    b.ToTable("AspNetUserClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.Property<string>("LoginProvider").HasColumnType("nvarchar(450)");
+                    b.Property<string>("ProviderKey").HasColumnType("nvarchar(450)");
+                    b.Property<string>("ProviderDisplayName").HasColumnType("nvarchar(max)");
+                    b.Property<string>("UserId").IsRequired().HasColumnType("nvarchar(450)");
+                    b.HasKey("LoginProvider", "ProviderKey");
+                    b.HasIndex("UserId");
+                    b.ToTable("AspNetUserLogins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.Property<string>("UserId").HasColumnType("nvarchar(450)");
+                    b.Property<string>("RoleId").HasColumnType("nvarchar(450)");
+                    b.HasKey("UserId", "RoleId");
+                    b.HasIndex("RoleId");
+                    b.ToTable("AspNetUserRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.Property<string>("UserId").HasColumnType("nvarchar(450)");
+                    b.Property<string>("LoginProvider").HasColumnType("nvarchar(450)");
+                    b.Property<string>("Name").HasColumnType("nvarchar(450)");
+                    b.Property<string>("Value").HasColumnType("nvarchar(max)");
+                    b.HasKey("UserId", "LoginProvider", "Name");
+                    b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("CityMixedGolf.Web.Models.GolfPlayer", b =>
+                {
+                    b.Property<string>("Id").HasColumnType("nvarchar(450)");
+                    b.Property<int>("AccessFailedCount").HasColumnType("int");
+                    b.Property<CityMixedGolf.Web.Models.BandColour>("BandColour").HasColumnType("int");
+                    b.Property<string>("ConcurrencyStamp").IsConcurrencyToken().HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("CreatedAt").HasColumnType("datetime2");
+                    b.Property<string>("Email").HasMaxLength(256).HasColumnType("nvarchar(256)");
+                    b.Property<bool>("EmailConfirmed").HasColumnType("bit");
+                    b.Property<bool>("EmailNotifications").HasColumnType("bit");
+                    b.Property<string>("FirstName").IsRequired().HasMaxLength(100).HasColumnType("nvarchar(100)");
+                    b.Property<CityMixedGolf.Web.Models.Gender>("Gender").HasColumnType("int");
+                    b.Property<decimal>("HandicapIndex").HasPrecision(5, 1).HasColumnType("decimal(5,1)");
+                    b.Property<bool>("IsActive").HasColumnType("bit");
+                    b.Property<bool>("IsAdmin").HasColumnType("bit");
+                    b.Property<string>("LastName").IsRequired().HasMaxLength(100).HasColumnType("nvarchar(100)");
+                    b.Property<bool>("LockoutEnabled").HasColumnType("bit");
+                    b.Property<DateTimeOffset?>("LockoutEnd").HasColumnType("datetimeoffset");
+                    b.Property<string>("MobileNumber").HasMaxLength(20).HasColumnType("nvarchar(20)");
+                    b.Property<string>("NormalizedEmail").HasMaxLength(256).HasColumnType("nvarchar(256)");
+                    b.Property<string>("NormalizedUserName").HasMaxLength(256).HasColumnType("nvarchar(256)");
+                    b.Property<string>("PasswordHash").HasColumnType("nvarchar(max)");
+                    b.Property<string>("PhoneNumber").HasColumnType("nvarchar(max)");
+                    b.Property<bool>("PhoneNumberConfirmed").HasColumnType("bit");
+                    b.Property<string>("SecurityStamp").HasColumnType("nvarchar(max)");
+                    b.Property<bool>("TwoFactorEnabled").HasColumnType("bit");
+                    b.Property<string>("UserName").HasMaxLength(256).HasColumnType("nvarchar(256)");
+                    b.Property<bool>("WhatsAppOptIn").HasColumnType("bit");
+                    b.HasKey("Id");
+                    b.HasIndex("NormalizedEmail").HasDatabaseName("EmailIndex");
+                    b.HasIndex("NormalizedUserName").IsUnique().HasDatabaseName("UserNameIndex").HasFilter("[NormalizedUserName] IS NOT NULL");
+                    b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("CityMixedGolf.Web.Models.Competition", b =>
+                {
+                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<DateTime>("CompetitionDate").HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedAt").HasColumnType("datetime2");
+                    b.Property<DateTime>("EntryCloseDate").HasColumnType("datetime2");
+                    b.Property<DateTime>("EntryOpenDate").HasColumnType("datetime2");
+                    b.Property<string>("Format").IsRequired().HasMaxLength(100).HasColumnType("nvarchar(100)");
+                    b.Property<int?>("MaxEntries").HasColumnType("int");
+                    b.Property<string>("Name").IsRequired().HasMaxLength(200).HasColumnType("nvarchar(200)");
+                    b.Property<string>("Notes").HasColumnType("nvarchar(max)");
+                    b.Property<CityMixedGolf.Web.Models.CompetitionStatus>("Status").HasColumnType("int");
+                    b.HasKey("Id");
+                    b.ToTable("Competitions");
+                });
+
+            modelBuilder.Entity("CityMixedGolf.Web.Models.CompetitionEntry", b =>
+                {
+                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<int>("CompetitionId").HasColumnType("int");
+                    b.Property<DateTime>("CreatedAt").HasColumnType("datetime2");
+                    b.Property<bool>("EnteringAsSingle").HasColumnType("bit");
+                    b.Property<string>("PlayerId").IsRequired().HasColumnType("nvarchar(450)");
+                    b.Property<string>("PreferredPartnerId").HasColumnType("nvarchar(450)");
+                    b.Property<string>("SpecialRequests").HasColumnType("nvarchar(max)");
+                    b.Property<CityMixedGolf.Web.Models.EntryStatus>("Status").HasColumnType("int");
+                    b.Property<CityMixedGolf.Web.Models.TeePreference>("TeePreference").HasColumnType("int");
+                    b.Property<DateTime>("UpdatedAt").HasColumnType("datetime2");
+                    b.HasKey("Id");
+                    b.HasIndex("CompetitionId");
+                    b.HasIndex("PlayerId");
+                    b.HasIndex("PreferredPartnerId");
+                    b.ToTable("CompetitionEntries");
+                });
+
+            modelBuilder.Entity("CityMixedGolf.Web.Models.DrawPair", b =>
+                {
+                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<CityMixedGolf.Web.Models.TeePreference>("AssignedTee").HasColumnType("int");
+                    b.Property<string>("ConflictNote").HasMaxLength(200).HasColumnType("nvarchar(200)");
+                    b.Property<string>("GreenBandPlayerId").IsRequired().HasColumnType("nvarchar(450)");
+                    b.Property<int>("GroupDrawId").HasColumnType("int");
+                    b.Property<int?>("OrderOfMeritPoints").HasColumnType("int");
+                    b.Property<int>("PairNumber").HasColumnType("int");
+                    b.Property<CityMixedGolf.Web.Models.DrawPairStatus>("PairStatus").HasColumnType("int");
+                    b.Property<int?>("Position").HasColumnType("int");
+                    b.Property<string>("RedBandPlayerId").IsRequired().HasColumnType("nvarchar(450)");
+                    b.Property<int?>("Score").HasColumnType("int");
+                    b.HasKey("Id");
+                    b.HasIndex("GreenBandPlayerId");
+                    b.HasIndex("GroupDrawId");
+                    b.HasIndex("RedBandPlayerId");
+                    b.ToTable("DrawPairs");
+                });
+
+            modelBuilder.Entity("CityMixedGolf.Web.Models.GroupDraw", b =>
+                {
+                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<int>("CompetitionId").HasColumnType("int");
+                    b.Property<CityMixedGolf.Web.Models.DrawMethod>("DrawMethod").HasColumnType("int");
+                    b.Property<string>("DrawnByUserId").HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("DrawnAt").HasColumnType("datetime2");
+                    b.Property<bool>("IsPublished").HasColumnType("bit");
+                    b.Property<DateTime?>("PublishedAt").HasColumnType("datetime2");
+                    b.HasKey("Id");
+                    b.HasIndex("CompetitionId");
+                    b.ToTable("GroupDraws");
+                });
+
+            modelBuilder.Entity("CityMixedGolf.Web.Models.Notification", b =>
+                {
+                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<CityMixedGolf.Web.Models.NotificationChannel>("Channel").HasColumnType("int");
+                    b.Property<int?>("CompetitionId").HasColumnType("int");
+                    b.Property<DateTime>("CreatedAt").HasColumnType("datetime2");
+                    b.Property<string>("ErrorMessage").HasColumnType("nvarchar(max)");
+                    b.Property<string>("Message").HasColumnType("nvarchar(max)");
+                    b.Property<string>("PlayerId").IsRequired().HasColumnType("nvarchar(450)");
+                    b.Property<DateTime?>("SentAt").HasColumnType("datetime2");
+                    b.Property<CityMixedGolf.Web.Models.NotificationStatus>("Status").HasColumnType("int");
+                    b.Property<CityMixedGolf.Web.Models.NotificationType>("Type").HasColumnType("int");
+                    b.HasKey("Id");
+                    b.HasIndex("CompetitionId");
+                    b.HasIndex("PlayerId");
+                    b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null).WithMany().HasForeignKey("RoleId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.HasOne("CityMixedGolf.Web.Models.GolfPlayer", null).WithMany().HasForeignKey("UserId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.HasOne("CityMixedGolf.Web.Models.GolfPlayer", null).WithMany().HasForeignKey("UserId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null).WithMany().HasForeignKey("RoleId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+                    b.HasOne("CityMixedGolf.Web.Models.GolfPlayer", null).WithMany().HasForeignKey("UserId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.HasOne("CityMixedGolf.Web.Models.GolfPlayer", null).WithMany().HasForeignKey("UserId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+                });
+
+            modelBuilder.Entity("CityMixedGolf.Web.Models.CompetitionEntry", b =>
+                {
+                    b.HasOne("CityMixedGolf.Web.Models.Competition", "Competition").WithMany("Entries").HasForeignKey("CompetitionId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+                    b.HasOne("CityMixedGolf.Web.Models.GolfPlayer", "Player").WithMany("Entries").HasForeignKey("PlayerId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+                    b.HasOne("CityMixedGolf.Web.Models.GolfPlayer", "PreferredPartner").WithMany().HasForeignKey("PreferredPartnerId").OnDelete(DeleteBehavior.SetNull);
+                    b.Navigation("Competition");
+                    b.Navigation("Player");
+                    b.Navigation("PreferredPartner");
+                });
+
+            modelBuilder.Entity("CityMixedGolf.Web.Models.DrawPair", b =>
+                {
+                    b.HasOne("CityMixedGolf.Web.Models.GolfPlayer", "GreenBandPlayer").WithMany().HasForeignKey("GreenBandPlayerId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+                    b.HasOne("CityMixedGolf.Web.Models.GroupDraw", "GroupDraw").WithMany("Pairs").HasForeignKey("GroupDrawId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+                    b.HasOne("CityMixedGolf.Web.Models.GolfPlayer", "RedBandPlayer").WithMany().HasForeignKey("RedBandPlayerId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+                    b.Navigation("GreenBandPlayer");
+                    b.Navigation("GroupDraw");
+                    b.Navigation("RedBandPlayer");
+                });
+
+            modelBuilder.Entity("CityMixedGolf.Web.Models.GroupDraw", b =>
+                {
+                    b.HasOne("CityMixedGolf.Web.Models.Competition", "Competition").WithMany("Draws").HasForeignKey("CompetitionId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+                    b.Navigation("Competition");
+                });
+
+            modelBuilder.Entity("CityMixedGolf.Web.Models.Notification", b =>
+                {
+                    b.HasOne("CityMixedGolf.Web.Models.Competition", "Competition").WithMany("Notifications").HasForeignKey("CompetitionId").OnDelete(DeleteBehavior.SetNull);
+                    b.HasOne("CityMixedGolf.Web.Models.GolfPlayer", "Player").WithMany("Notifications").HasForeignKey("PlayerId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+                    b.Navigation("Competition");
+                    b.Navigation("Player");
+                });
+
+            modelBuilder.Entity("CityMixedGolf.Web.Models.Competition", b =>
+                {
+                    b.Navigation("Draws");
+                    b.Navigation("Entries");
+                    b.Navigation("Notifications");
+                });
+
+            modelBuilder.Entity("CityMixedGolf.Web.Models.GolfPlayer", b =>
+                {
+                    b.Navigation("DrawPairs");
+                    b.Navigation("Entries");
+                    b.Navigation("Notifications");
+                });
+
+            modelBuilder.Entity("CityMixedGolf.Web.Models.GroupDraw", b =>
+                {
+                    b.Navigation("Pairs");
+                });
         }
     }
 }

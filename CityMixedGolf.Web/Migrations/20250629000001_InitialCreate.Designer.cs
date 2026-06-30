@@ -14,6 +14,7 @@ namespace CityMixedGolf.Web.Migrations
     [Migration("20250629000001_InitialCreate")]
     partial class InitialCreate
     {
+        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
@@ -133,7 +134,7 @@ namespace CityMixedGolf.Web.Migrations
                     b.Property<int?>("MaxEntries").HasColumnType("int");
                     b.Property<string>("Name").IsRequired().HasMaxLength(200).HasColumnType("nvarchar(200)");
                     b.Property<string>("Notes").HasColumnType("nvarchar(max)");
-                    b.Property<CityMixedGolf.Web.Models.CompetitionStatus>("Status").HasColumnType("int");
+                    b.Property<int>("Status").HasColumnType("int");
                     b.HasKey("Id");
                     b.ToTable("Competitions");
                 });
@@ -148,8 +149,8 @@ namespace CityMixedGolf.Web.Migrations
                     b.Property<string>("PlayerId").IsRequired().HasColumnType("nvarchar(450)");
                     b.Property<string>("PreferredPartnerId").HasColumnType("nvarchar(450)");
                     b.Property<string>("SpecialRequests").HasColumnType("nvarchar(max)");
-                    b.Property<CityMixedGolf.Web.Models.EntryStatus>("Status").HasColumnType("int");
-                    b.Property<CityMixedGolf.Web.Models.TeePreference>("TeePreference").HasColumnType("int");
+                    b.Property<int>("Status").HasColumnType("int");
+                    b.Property<int>("TeePreference").HasColumnType("int");
                     b.Property<DateTime>("UpdatedAt").HasColumnType("datetime2");
                     b.HasKey("Id");
                     b.HasIndex("CompetitionId");
@@ -162,13 +163,13 @@ namespace CityMixedGolf.Web.Migrations
                 {
                     b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-                    b.Property<CityMixedGolf.Web.Models.TeePreference>("AssignedTee").HasColumnType("int");
+                    b.Property<int>("AssignedTee").HasColumnType("int");
                     b.Property<string>("ConflictNote").HasMaxLength(200).HasColumnType("nvarchar(200)");
                     b.Property<string>("GreenBandPlayerId").IsRequired().HasColumnType("nvarchar(450)");
                     b.Property<int>("GroupDrawId").HasColumnType("int");
                     b.Property<int?>("OrderOfMeritPoints").HasColumnType("int");
                     b.Property<int>("PairNumber").HasColumnType("int");
-                    b.Property<CityMixedGolf.Web.Models.DrawPairStatus>("PairStatus").HasColumnType("int");
+                    b.Property<int>("PairStatus").HasColumnType("int");
                     b.Property<int?>("Position").HasColumnType("int");
                     b.Property<string>("RedBandPlayerId").IsRequired().HasColumnType("nvarchar(450)");
                     b.Property<int?>("Score").HasColumnType("int");
@@ -184,9 +185,9 @@ namespace CityMixedGolf.Web.Migrations
                     b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
                     b.Property<int>("CompetitionId").HasColumnType("int");
-                    b.Property<CityMixedGolf.Web.Models.DrawMethod>("DrawMethod").HasColumnType("int");
-                    b.Property<string>("DrawnByUserId").HasColumnType("nvarchar(max)");
+                    b.Property<int>("DrawMethod").HasColumnType("int");
                     b.Property<DateTime>("DrawnAt").HasColumnType("datetime2");
+                    b.Property<string>("DrawnByUserId").HasColumnType("nvarchar(450)");
                     b.Property<bool>("IsPublished").HasColumnType("bit");
                     b.Property<DateTime?>("PublishedAt").HasColumnType("datetime2");
                     b.HasKey("Id");
@@ -198,15 +199,15 @@ namespace CityMixedGolf.Web.Migrations
                 {
                     b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-                    b.Property<CityMixedGolf.Web.Models.NotificationChannel>("Channel").HasColumnType("int");
+                    b.Property<int>("Channel").HasColumnType("int");
                     b.Property<int?>("CompetitionId").HasColumnType("int");
                     b.Property<DateTime>("CreatedAt").HasColumnType("datetime2");
                     b.Property<string>("ErrorMessage").HasColumnType("nvarchar(max)");
                     b.Property<string>("Message").HasColumnType("nvarchar(max)");
                     b.Property<string>("PlayerId").IsRequired().HasColumnType("nvarchar(450)");
                     b.Property<DateTime?>("SentAt").HasColumnType("datetime2");
-                    b.Property<CityMixedGolf.Web.Models.NotificationStatus>("Status").HasColumnType("int");
-                    b.Property<CityMixedGolf.Web.Models.NotificationType>("Type").HasColumnType("int");
+                    b.Property<int>("Status").HasColumnType("int");
+                    b.Property<int>("Type").HasColumnType("int");
                     b.HasKey("Id");
                     b.HasIndex("CompetitionId");
                     b.HasIndex("PlayerId");

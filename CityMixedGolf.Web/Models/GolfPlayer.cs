@@ -18,8 +18,12 @@ public class GolfPlayer : IdentityUser
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public virtual ICollection<CompetitionEntry> Entries { get; set; } = new HashSet<CompetitionEntry>();
-    public virtual ICollection<DrawPair> DrawPairs { get; set; } = new HashSet<DrawPair>();
     public virtual ICollection<Notification> Notifications { get; set; } = new HashSet<Notification>();
+
+    // Note: DrawPair has two separate FKs to GolfPlayer (GreenBandPlayer and RedBandPlayer),
+    // both configured as unidirectional in ApplicationDbContext. There is intentionally no
+    // single "DrawPairs" navigation here since a pair could relate via either side.
+    // Query draw history via DbContext.DrawPairs.Where(dp => dp.GreenBandPlayerId == id || dp.RedBandPlayerId == id)
 }
 
 public enum Gender { Lady, Gent }

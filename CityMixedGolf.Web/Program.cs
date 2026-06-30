@@ -54,10 +54,12 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Area routes must come first
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
+// Root / redirects to Public area via the root HomeController
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

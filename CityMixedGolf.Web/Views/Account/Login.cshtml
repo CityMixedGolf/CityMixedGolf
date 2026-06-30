@@ -1,0 +1,55 @@
+@model CityMixedGolf.Web.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Sign in";
+}
+
+<div class="hero-band">
+    <div class="container">
+        <h1>Sign in</h1>
+        <p>City of Newcastle GC &ndash; Mixed Golf Section</p>
+    </div>
+</div>
+
+<div class="container mt-4" style="max-width:440px">
+    <div class="golf-panel">
+        <div class="golf-panel-header">
+            <h2 class="golf-panel-title"><i class="ti ti-login"></i> Member login</h2>
+        </div>
+        <div class="p-4">
+            <form method="post" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@ViewBag.ReturnUrl">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="alert-golf-warning mb-3" style="display:@(ViewContext.ModelState.IsValid ? "none" : "block")"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em"></label>
+                    <input asp-for="Email" class="form-control" style="border-color:#ccc;font-size:0.9rem" placeholder="your@email.com" />
+                    <span asp-validation-for="Email" class="text-danger" style="font-size:0.75rem"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em"></label>
+                    <input asp-for="Password" class="form-control" style="border-color:#ccc;font-size:0.9rem" placeholder="Password" />
+                    <span asp-validation-for="Password" class="text-danger" style="font-size:0.75rem"></span>
+                </div>
+
+                <div class="mb-4 d-flex align-items-center gap-2">
+                    <input asp-for="RememberMe" type="checkbox" style="accent-color:var(--golf-green)" />
+                    <label asp-for="RememberMe" style="font-size:0.875rem;cursor:pointer">Remember me</label>
+                </div>
+
+                <button type="submit" class="btn btn-golf-primary w-100">Sign in</button>
+            </form>
+
+            <hr style="border-color:#ede8e0;margin:1.5rem 0" />
+
+            <p style="font-size:0.875rem;color:var(--golf-muted);text-align:center;margin:0">
+                New member?
+                <a asp-controller="Account" asp-action="Register" style="color:var(--golf-green);font-weight:500">Create an account</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

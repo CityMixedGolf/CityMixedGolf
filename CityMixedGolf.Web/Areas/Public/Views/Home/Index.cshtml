@@ -65,8 +65,8 @@
                     <a href="#" class="golf-panel-link">Full table &rarr;</a>
                 </div>
                 <div class="d-flex border-bottom">
-                    <button class="flex-fill py-2 border-0 bg-transparent" style="font-size:0.8rem;border-bottom:2px solid var(--golf-gold)!important;" id="tab-ladies" onclick="showOom(ladies)">Ladies</button>
-                    <button class="flex-fill py-2 border-0 bg-transparent" style="font-size:0.8rem;color:var(--golf-muted);" id="tab-gents" onclick="showOom(gents)">Gents</button>
+                    <button class="flex-fill py-2 border-0 bg-transparent oom-tab active-tab" id="tab-ladies" data-tab="ladies" onclick="showOom(this)">Ladies</button>
+                    <button class="flex-fill py-2 border-0 bg-transparent oom-tab" id="tab-gents" data-tab="gents" onclick="showOom(this)">Gents</button>
                 </div>
                 <div id="oom-ladies">
                     <table class="golf-table">
@@ -173,13 +173,16 @@
 
 @section Scripts {
 <script>
-function showOom(tab) {
+function showOom(btn) {
+    var tab = btn.getAttribute("data-tab");
     document.getElementById("oom-ladies").style.display = tab === "ladies" ? "block" : "none";
     document.getElementById("oom-gents").style.display  = tab === "gents"  ? "block" : "none";
-    document.getElementById("tab-ladies").style.borderBottom = tab === "ladies" ? "2px solid var(--golf-gold)" : "none";
-    document.getElementById("tab-gents").style.borderBottom  = tab === "gents"  ? "2px solid var(--golf-gold)" : "none";
-    document.getElementById("tab-ladies").style.color = tab === "ladies" ? "var(--golf-green)" : "var(--golf-muted)";
-    document.getElementById("tab-gents").style.color  = tab === "gents"  ? "var(--golf-green)" : "var(--golf-muted)";
+    document.querySelectorAll(".oom-tab").forEach(function(b) {
+        var active = b.getAttribute("data-tab") === tab;
+        b.style.borderBottom = active ? "2px solid var(--golf-gold)" : "2px solid transparent";
+        b.style.color = active ? "var(--golf-green)" : "var(--golf-muted)";
+        b.style.fontWeight = active ? "500" : "400";
+    });
 }
 </script>
 }

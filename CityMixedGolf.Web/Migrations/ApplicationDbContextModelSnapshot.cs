@@ -280,7 +280,6 @@ namespace CityMixedGolf.Web.Migrations
 
             modelBuilder.Entity("CityMixedGolf.Web.Models.GolfPlayer", b =>
                 {
-                    b.Navigation("DrawPairs");
                     b.Navigation("Entries");
                     b.Navigation("Notifications");
                 });

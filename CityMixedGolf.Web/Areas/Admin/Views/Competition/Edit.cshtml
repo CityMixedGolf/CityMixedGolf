@@ -1,0 +1,100 @@
+@model CityMixedGolf.Web.Models.Competition
+@{
+    ViewData["Title"] = Model.Id == 0 ? "New Competition" : "Edit Competition";
+    var isEdit = Model.Id != 0;
+}
+
+<div class="hero-band">
+    <div class="container">
+        <h1>@(isEdit ? "Edit Competition" : "New Competition")</h1>
+        <p>@(isEdit ? Model.Name : "Create a new mixed golf competition")</p>
+    </div>
+</div>
+
+<div class="container mt-4" style="max-width:640px">
+    <form method="post" asp-area="Admin" asp-controller="Competition" asp-action="@(isEdit ? "Edit" : "Create")">
+        @Html.AntiForgeryToken()
+        @if (isEdit) { <input type="hidden" asp-for="Id" /> }
+
+        <div class="golf-panel mb-3">
+            <div class="golf-panel-header"><h2 class="golf-panel-title"><i class="ti ti-info-circle"></i> Competition details</h2></div>
+            <div class="p-4">
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em"></label>
+                    <input asp-for="Name" class="form-control" style="border-color:#ccc" placeholder="e.g. Captains Mixed" />
+                    <span asp-validation-for="Name" class="text-danger" style="font-size:0.75rem"></span>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label asp-for="CompetitionDate" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em"></label>
+                        <input asp-for="CompetitionDate" type="date" class="form-control" style="border-color:#ccc" />
+                        <span asp-validation-for="CompetitionDate" class="text-danger" style="font-size:0.75rem"></span>
+                    </div>
+                    <div class="col-6">
+                        <label asp-for="Format" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em"></label>
+                        <select asp-for="Format" class="form-select" style="border-color:#ccc">
+                            <option value="Betterball Stableford">Betterball Stableford</option>
+                            <option value="Strokeplay">Strokeplay</option>
+                            <option value="Foursomes">Foursomes</option>
+                            <option value="Greensome">Greensome</option>
+                        </select>
+                        <span asp-validation-for="Format" class="text-danger" style="font-size:0.75rem"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Notes" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em"></label>
+                    <textarea asp-for="Notes" class="form-control" rows="2" style="border-color:#ccc" placeholder="Any additional notes for members..."></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="MaxEntries" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em"></label>
+                    <input asp-for="MaxEntries" type="number" class="form-control" style="border-color:#ccc;max-width:120px" placeholder="No limit" />
+                    <div style="font-size:0.7rem;color:var(--golf-muted);margin-top:3px">Leave blank for no limit</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="golf-panel mb-3">
+            <div class="golf-panel-header"><h2 class="golf-panel-title"><i class="ti ti-calendar"></i> Entry window</h2></div>
+            <div class="p-4">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label asp-for="EntryOpenDate" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em"></label>
+                        <input asp-for="EntryOpenDate" type="date" class="form-control" style="border-color:#ccc" />
+                        <span asp-validation-for="EntryOpenDate" class="text-danger" style="font-size:0.75rem"></span>
+                    </div>
+                    <div class="col-6">
+                        <label asp-for="EntryCloseDate" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em"></label>
+                        <input asp-for="EntryCloseDate" type="date" class="form-control" style="border-color:#ccc" />
+                        <span asp-validation-for="EntryCloseDate" class="text-danger" style="font-size:0.75rem"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="golf-panel mb-3">
+            <div class="golf-panel-header"><h2 class="golf-panel-title"><i class="ti ti-settings"></i> Status</h2></div>
+            <div class="p-4">
+                <select asp-for="Status" asp-items="Html.GetEnumSelectList<CityMixedGolf.Web.Models.CompetitionStatus>()"
+                        class="form-select" style="border-color:#ccc"></select>
+                <div style="font-size:0.7rem;color:var(--golf-muted);margin-top:6px">
+                    Set to <strong>Open</strong> for members to see and enter the competition.
+                    <strong>Draft</strong> is hidden from members.
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-golf-primary flex-grow-1">
+                @(isEdit ? "Save changes" : "Create competition")
+            </button>
+            <a asp-area="Admin" asp-controller="Competition" asp-action="Index" class="btn btn-golf-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

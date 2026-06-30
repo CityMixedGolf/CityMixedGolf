@@ -1,0 +1,77 @@
+@model IEnumerable<CityMixedGolf.Web.Models.Competition>
+@{
+    ViewData["Title"] = "Competitions";
+}
+
+<div class="hero-band">
+    <div class="container d-flex align-items-center justify-content-between">
+        <div>
+            <h1>Competitions</h1>
+            <p>Manage competitions, draws and results</p>
+        </div>
+        <a asp-area="Admin" asp-controller="Competition" asp-action="Create" class="btn btn-golf-gold">
+            <i class="ti ti-plus"></i> New competition
+        </a>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <div class="golf-panel">
+        <div class="golf-panel-header">
+            <h2 class="golf-panel-title"><i class="ti ti-calendar-event"></i> All competitions</h2>
+        </div>
+        <table class="golf-table">
+            <thead>
+                <tr>
+                    <th>Competition</th>
+                    <th>Date</th>
+                    <th>Entry closes</th>
+                    <th>Entries</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var comp in Model.OrderByDescending(c => c.CompetitionDate))
+            {
+                <tr>
+                    <td>
+                        <div class="fw-500">@comp.Name</div>
+                        <div style="font-size:0.75rem;color:var(--golf-muted)">@comp.Format</div>
+                    </td>
+                    <td>@comp.CompetitionDate.ToString("dd MMM yyyy")</td>
+                    <td>@comp.EntryCloseDate.ToString("dd MMM yyyy")</td>
+                    <td>@comp.Entries.Count(e => e.Status == EntryStatus.Entered)</td>
+                    <td>
+                        <span class="badge rounded-pill @(comp.Status switch {
+                            CompetitionStatus.Open => "badge-open",
+                            CompetitionStatus.ResultsEntered => "bg-success text-white",
+                            CompetitionStatus.DrawPublished => "badge-override",
+                            CompetitionStatus.Draft => "badge-closed",
+                            _ => "badge-closed"
+                        }) px-2 py-1" style="font-size:0.75rem">
+                            @comp.Status
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a asp-area="Admin" asp-controller="Competition" asp-action="Edit"
+                               asp-route-id="@comp.Id" class="btn btn-golf-outline btn-sm">Edit</a>
+                            @if (comp.Status == CompetitionStatus.Closed || comp.Status == CompetitionStatus.Open)
+                            {
+                                <a asp-area="Admin" asp-controller="Draw" asp-action="Index"
+                                   asp-route-competitionId="@comp.Id" class="btn btn-golf-primary btn-sm">Draw</a>
+                            }
+                            @if (comp.Status == CompetitionStatus.DrawPublished)
+                            {
+                                <a asp-area="Admin" asp-controller="Results" asp-action="Enter"
+                                   asp-route-competitionId="@comp.Id" class="btn btn-golf-gold btn-sm">Results</a>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,9 +1,10 @@
 @{
     ViewData["Title"] = "My Dashboard";
-    var player = (GolfPlayer)ViewBag.Player;
-    var entries = (List<CompetitionEntry>)ViewBag.Entries;
-    var open = (List<Competition>)ViewBag.OpenCompetitions;
-    var history = (List<DrawPair>)ViewBag.History;
+    var player = (CityMixedGolf.Web.Models.GolfPlayer)ViewBag.Player;
+    var myEntries = (List<CityMixedGolf.Web.Models.CompetitionEntry>)ViewBag.MyEntries;
+    var openComps = (List<CityMixedGolf.Web.Models.Competition>)ViewBag.OpenCompetitions;
+    var allEntrants = (List<CityMixedGolf.Web.Models.CompetitionEntry>)ViewBag.AllEntrants;
+    var history = (List<CityMixedGolf.Web.Models.DrawPair>)ViewBag.History;
 }
 
 <div class="hero-band">
@@ -24,77 +25,130 @@
                         @player.FirstName[0]@player.LastName[0]
                     </div>
                     <div class="fw-500">@player.FullName</div>
-                    <div style="font-size:0.8rem;color:var(--golf-muted)">Handicap: @player.HandicapIndex.ToString("F1")</div>
-                    <span class="badge-@(player.BandColour.ToString().ToLower())-band mt-2 d-inline-block">@player.BandColour band</span>
+                    <div style="font-size:0.8rem;color:var(--golf-muted)" class="mt-1">@player.Gender</div>
+                    <a asp-controller="Account" asp-action="Profile"
+                       class="btn btn-golf-outline btn-sm mt-3 w-100">
+                        <i class="ti ti-settings" style="font-size:0.8rem"></i> Profile &amp; notifications
+                    </a>
                 </div>
             </div>
 
-            <div class="golf-panel">
-                <div class="golf-panel-header"><h2 class="golf-panel-title"><i class="ti ti-bell"></i> Notifications</h2></div>
-                <div class="p-3">
-                    <p style="font-size:0.8rem;color:var(--golf-muted);margin-bottom:0.75rem">Choose how you receive draw results and reminders.</p>
-                    <form method="post" asp-area="Member" asp-controller="Entry" asp-action="UpdateNotifications">
-                        @Html.AntiForgeryToken()
-                        <div class="d-flex align-items-start gap-2 mb-2">
-                            <input type="checkbox" id="chk-email" name="emailNotifications" class="mt-1" style="accent-color:var(--golf-green)" @(player.EmailNotifications ? "checked" : "") />
-                            <label for="chk-email">
-                                <span style="font-size:0.875rem">Email</span>
-                                <span style="font-size:0.75rem;color:var(--golf-muted);display:block">@player.Email</span>
-                            </label>
+            <!-- OOM standing -->
+            @if (history.Any(h => h.OrderOfMeritPoints.HasValue))
+            {
+                var totalPoints = history.Where(h => h.OrderOfMeritPoints.HasValue).Sum(h => h.OrderOfMeritPoints!.Value);
+                var bestScore = history.Where(h => h.Score.HasValue).Max(h => h.Score);
+                <div class="golf-panel mb-3">
+                    <div class="golf-panel-header"><span class="golf-panel-title"><i class="ti ti-medal"></i> Season so far</span></div>
+                    <div class="p-3">
+                        <div class="d-flex justify-content-between" style="font-size:0.875rem;padding:4px 0;border-bottom:1px solid #ede8e0">
+                            <span style="color:var(--golf-muted)">OOM points</span>
+                            <span class="fw-500" style="color:var(--golf-green)">@totalPoints</span>
                         </div>
-                        <div class="d-flex align-items-start gap-2 mb-3">
-                            <input type="checkbox" id="chk-wa" name="whatsAppOptIn" class="mt-1" style="accent-color:var(--golf-green)" @(player.WhatsAppOptIn ? "checked" : "") />
-                            <label for="chk-wa">
-                                <span style="font-size:0.875rem">WhatsApp</span>
-                                <span style="font-size:0.75rem;color:var(--golf-muted);display:block">@(string.IsNullOrEmpty(player.MobileNumber) ? "Add a mobile number to enable" : player.MobileNumber)</span>
-                            </label>
+                        <div class="d-flex justify-content-between" style="font-size:0.875rem;padding:4px 0;border-bottom:1px solid #ede8e0">
+                            <span style="color:var(--golf-muted)">Rounds played</span>
+                            <span class="fw-500">@history.Count</span>
                         </div>
-                        <button type="submit" class="btn btn-golf-outline btn-sm w-100">Save preferences</button>
-                    </form>
-                    <p style="font-size:0.7rem;color:var(--golf-muted);margin-top:0.5rem"><i class="ti ti-info-circle"></i> Update your mobile number under profile settings.</p>
+                        <div class="d-flex justify-content-between" style="font-size:0.875rem;padding:4px 0">
+                            <span style="color:var(--golf-muted)">Best score</span>
+                            <span class="fw-500">@(bestScore.HasValue ? $"{bestScore} pts" : "—")</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            }
         </div>
 
         <!-- Main content -->
         <div class="col-md-9">
 
-            <!-- Open entries -->
-            @foreach (var entry in entries.Where(e => e.Status == EntryStatus.Entered && e.Competition.EntryCloseDate >= DateTime.UtcNow))
+            <!-- My active entries (open for amendment) -->
+            @foreach (var entry in myEntries.Where(e => e.Status == EntryStatus.Entered && e.Competition.EntryCloseDate >= DateTime.UtcNow))
             {
                 <div class="golf-panel mb-3">
                     <div class="golf-panel-header d-flex justify-content-between align-items-start">
                         <div>
                             <h2 class="golf-panel-title mb-0">@entry.Competition.Name</h2>
-                            <small style="color:rgba(255,255,255,0.6);font-size:0.75rem">@entry.Competition.CompetitionDate.ToString("dddd dd MMMM yyyy") &middot; @entry.Competition.Format</small>
+                            <small style="color:rgba(255,255,255,0.6);font-size:0.75rem">
+                                @entry.Competition.CompetitionDate.ToString("dddd dd MMMM yyyy") &middot; @entry.Competition.Format
+                            </small>
                         </div>
-                        <span class="badge badge-open px-2 py-1 rounded-pill">Entry open</span>
+                        <span class="badge badge-open px-2 py-1 rounded-pill">Entered</span>
                     </div>
                     <div class="p-3">
                         <div class="alert-golf-success mb-3">
-                            <i class="ti ti-circle-check me-1"></i> You are entered &middot; Entry closes @entry.Competition.EntryCloseDate.ToString("dddd dd MMMM")
+                            <i class="ti ti-circle-check me-1"></i>
+                            You are entered &middot; Entry closes @entry.Competition.EntryCloseDate.ToString("dddd dd MMMM")
                         </div>
-                        <a asp-area="Member" asp-controller="Entry" asp-action="Enter" asp-route-competitionId="@entry.CompetitionId" class="btn btn-golf-outline btn-sm me-2">Amend entry</a>
+
+                        <!-- All entrants for this competition -->
+                        @{
+                            var compEntrants = allEntrants.Where(e => e.CompetitionId == entry.CompetitionId).ToList();
+                            var ladies = compEntrants.Where(e => e.Player.Gender == Gender.Lady).ToList();
+                            var gents = compEntrants.Where(e => e.Player.Gender == Gender.Gent).ToList();
+                        }
+                        @if (compEntrants.Any())
+                        {
+                            <div class="mb-3">
+                                <div style="font-size:0.75rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">
+                                    Entries so far (@compEntrants.Count)
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div style="font-size:0.7rem;color:var(--golf-muted);margin-bottom:4px">Ladies (@ladies.Count)</div>
+                                        @foreach (var e in ladies)
+                                        {
+                                            <div style="font-size:0.8rem;padding:3px 0;border-bottom:1px solid #f5f0e8;display:flex;align-items:center;gap:6px">
+                                                <span style="width:6px;height:6px;border-radius:50%;background:#1a6e3a;flex-shrink:0"></span>
+                                                @e.Player.FullName
+                                                @if (e.PlayerId == player.Id) { <span style="font-size:0.65rem;color:var(--golf-gold);font-weight:500">(you)</span> }
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="col-6">
+                                        <div style="font-size:0.7rem;color:var(--golf-muted);margin-bottom:4px">Gents (@gents.Count)</div>
+                                        @foreach (var e in gents)
+                                        {
+                                            <div style="font-size:0.8rem;padding:3px 0;border-bottom:1px solid #f5f0e8;display:flex;align-items:center;gap:6px">
+                                                <span style="width:6px;height:6px;border-radius:50%;background:#c0392b;flex-shrink:0"></span>
+                                                @e.Player.FullName
+                                                @if (e.PlayerId == player.Id) { <span style="font-size:0.65rem;color:var(--golf-gold);font-weight:500">(you)</span> }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <a asp-area="Member" asp-controller="Entry" asp-action="Enter"
+                           asp-route-competitionId="@entry.CompetitionId"
+                           class="btn btn-golf-outline btn-sm me-2">Amend entry</a>
                         <form method="post" asp-area="Member" asp-controller="Entry" asp-action="Cancel" class="d-inline">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="entryId" value="@entry.Id" />
-                            <button type="submit" class="btn btn-sm" style="color:#c0392b;border:1px solid #e0b0ad;background:#fff" onclick="return confirm(Cancel your entry for @entry.Competition.Name?)">Cancel entry</button>
+                            <button type="submit" class="btn btn-sm"
+                                    style="color:#c0392b;border:1px solid #e0b0ad;background:#fff"
+                                    onclick="return confirm('Cancel your entry for @entry.Competition.Name?')">
+                                Cancel entry
+                            </button>
                         </form>
                     </div>
                 </div>
             }
 
             <!-- Open competitions not yet entered -->
-            @foreach (var comp in open.Where(c => entries.All(e => e.CompetitionId != c.Id || e.Status == EntryStatus.Cancelled)))
+            @foreach (var comp in openComps.Where(c => myEntries.All(e => e.CompetitionId != c.Id || e.Status == EntryStatus.Cancelled)))
             {
                 <div class="golf-panel mb-3">
-                    <div class="golf-panel-header">
+                    <div class="golf-panel-header d-flex justify-content-between align-items-center">
                         <h2 class="golf-panel-title">@comp.Name</h2>
                         <span class="badge badge-open px-2 py-1 rounded-pill" style="font-size:0.7rem">Entry open</span>
                     </div>
                     <div class="p-3 d-flex align-items-center justify-content-between">
-                        <div style="font-size:0.875rem;color:var(--golf-muted)">@comp.CompetitionDate.ToString("dd MMMM yyyy") &middot; Entry closes @comp.EntryCloseDate.ToString("dd MMMM")</div>
-                        <a asp-area="Member" asp-controller="Entry" asp-action="Enter" asp-route-competitionId="@comp.Id" class="btn btn-golf-primary btn-sm">Enter now</a>
+                        <div style="font-size:0.875rem;color:var(--golf-muted)">
+                            @comp.CompetitionDate.ToString("dd MMMM yyyy") &middot; Entry closes @comp.EntryCloseDate.ToString("dd MMMM")
+                        </div>
+                        <a asp-area="Member" asp-controller="Entry" asp-action="Enter"
+                           asp-route-competitionId="@comp.Id" class="btn btn-golf-primary btn-sm">Enter now</a>
                     </div>
                 </div>
             }
@@ -103,7 +157,9 @@
             <div class="golf-panel">
                 <div class="golf-panel-header"><h2 class="golf-panel-title"><i class="ti ti-history"></i> My competition history</h2></div>
                 <table class="golf-table">
-                    <thead><tr><th>Date</th><th>Competition</th><th>Played with</th><th class="text-end">Score / Pos</th></tr></thead>
+                    <thead>
+                        <tr><th>Date</th><th>Competition</th><th>Played with</th><th class="text-end">Score / Pos</th></tr>
+                    </thead>
                     <tbody>
                     @if (history.Any())
                     {
@@ -116,7 +172,12 @@
                                 <td style="color:var(--golf-muted)">@partner.FullName</td>
                                 <td class="text-end">
                                     <div class="fw-500" style="color:var(--golf-green)">@pair.Score pts</div>
-                                    <div style="font-size:0.7rem;color:var(--golf-muted)">@(pair.Position.HasValue ? $"{pair.Position}{(pair.Position == 1 ? "st" : pair.Position == 2 ? "nd" : pair.Position == 3 ? "rd" : "th")} overall" : "")</div>
+                                    <div style="font-size:0.7rem;color:var(--golf-muted)">
+                                        @if (pair.Position.HasValue)
+                                        {
+                                            @($"{pair.Position}{(pair.Position == 1 ? "st" : pair.Position == 2 ? "nd" : pair.Position == 3 ? "rd" : "th")} overall")
+                                        }
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -128,6 +189,7 @@
                     </tbody>
                 </table>
             </div>
+
         </div>
     </div>
 </div>

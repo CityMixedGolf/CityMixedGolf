@@ -1,0 +1,74 @@
+@model CityMixedGolf.Web.ViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="hero-band">
+    <div class="container">
+        <h1>My Profile</h1>
+        <p>Notification preferences and playing partner</p>
+    </div>
+</div>
+
+<div class="container mt-4" style="max-width:520px">
+    <form method="post" asp-controller="Account" asp-action="Profile">
+        @Html.AntiForgeryToken()
+
+        <div class="golf-panel mb-3">
+            <div class="golf-panel-header"><h2 class="golf-panel-title"><i class="ti ti-user"></i> Account</h2></div>
+            <div class="p-4">
+                <div class="mb-3">
+                    <label class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em">Name</label>
+                    <input type="text" value="@Model.FullName" class="form-control" disabled style="background:#f9f6f0;border-color:#d8d0c2" />
+                </div>
+                <div class="mb-0">
+                    <label class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em">Email</label>
+                    <input type="text" value="@Model.Email" class="form-control" disabled style="background:#f9f6f0;border-color:#d8d0c2" />
+                    <div style="font-size:0.7rem;color:var(--golf-muted);margin-top:3px">Contact admin to change your email address.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="golf-panel mb-3">
+            <div class="golf-panel-header"><h2 class="golf-panel-title"><i class="ti ti-users"></i> Usual playing partner</h2></div>
+            <div class="p-4">
+                <select asp-for="UsualPartnerId" asp-items="ViewBag.Partners"
+                        class="form-select" style="border-color:#ccc">
+                    <option value="">— No preference —</option>
+                </select>
+                <div style="font-size:0.7rem;color:var(--golf-muted);margin-top:6px">
+                    This will be pre-selected when you enter a competition. The final pairing is always at the admin's discretion.
+                </div>
+            </div>
+        </div>
+
+        <div class="golf-panel mb-3">
+            <div class="golf-panel-header"><h2 class="golf-panel-title"><i class="ti ti-bell"></i> Notifications</h2></div>
+            <div class="p-4">
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <input asp-for="EmailNotifications" type="checkbox" style="accent-color:var(--golf-green);margin-top:3px" />
+                    <div>
+                        <label asp-for="EmailNotifications" style="font-size:0.875rem;font-weight:500;cursor:pointer">Email notifications</label>
+                        <div style="font-size:0.75rem;color:var(--golf-muted)">Draw results, entry confirmations and reminders</div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <input asp-for="WhatsAppOptIn" type="checkbox" style="accent-color:var(--golf-green);margin-top:3px" />
+                    <div>
+                        <label asp-for="WhatsAppOptIn" style="font-size:0.875rem;font-weight:500;cursor:pointer">WhatsApp notifications</label>
+                        <div style="font-size:0.75rem;color:var(--golf-muted)">Requires a mobile number below</div>
+                    </div>
+                </div>
+
+                <div>
+                    <label asp-for="MobileNumber" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em">Mobile number</label>
+                    <input asp-for="MobileNumber" class="form-control" style="border-color:#ccc" placeholder="e.g. 07700 900000" />
+                    <div style="font-size:0.7rem;color:var(--golf-muted);margin-top:3px">Required for WhatsApp notifications.</div>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-golf-primary w-100">Save profile</button>
+    </form>
+</div>

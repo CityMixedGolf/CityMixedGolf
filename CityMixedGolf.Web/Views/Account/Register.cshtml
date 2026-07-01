@@ -1,6 +1,7 @@
 @model CityMixedGolf.Web.ViewModels.RegisterViewModel
 @{
     ViewData["Title"] = "Create account";
+    var allPartners = (List<CityMixedGolf.Web.Models.GolfPlayer>)ViewBag.AllPartners;
 }
 
 <div class="hero-band">
@@ -16,54 +17,54 @@
             <h2 class="golf-panel-title"><i class="ti ti-user-plus"></i> New member registration</h2>
         </div>
         <div class="p-4">
+            <p style="font-size:0.875rem;color:var(--golf-muted);margin-bottom:1.25rem">
+                Select your name from the list below to link your account to your player profile.
+                If your name isn't listed, please contact the section admin.
+            </p>
+
             <form method="post" asp-controller="Account" asp-action="Register">
                 @Html.AntiForgeryToken()
-                <div asp-validation-summary="All" class="alert-golf-warning mb-3" style="display:@(ViewContext.ModelState.IsValid ? "none" : "block")"></div>
+                <div asp-validation-summary="ModelOnly" class="alert-golf-warning mb-3"></div>
 
-                <div class="row g-3 mb-3">
-                    <div class="col-6">
-                        <label asp-for="FirstName" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em"></label>
-                        <input asp-for="FirstName" class="form-control" style="border-color:#ccc;font-size:0.9rem" placeholder="Sarah" />
-                        <span asp-validation-for="FirstName" class="text-danger" style="font-size:0.75rem"></span>
-                    </div>
-                    <div class="col-6">
-                        <label asp-for="LastName" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em"></label>
-                        <input asp-for="LastName" class="form-control" style="border-color:#ccc;font-size:0.9rem" placeholder="Mitchell" />
-                        <span asp-validation-for="LastName" class="text-danger" style="font-size:0.75rem"></span>
-                    </div>
+                <div class="mb-3">
+                    <label asp-for="PlayerId" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em">Your name</label>
+                    <select asp-for="PlayerId" asp-items="ViewBag.Players"
+                            class="form-select" style="border-color:#ccc;font-size:0.9rem"
+                            id="player-select" onchange="updatePartners(this)">
+                        <option value="">— Select your name —</option>
+                    </select>
+                    <span asp-validation-for="PlayerId" class="text-danger" style="font-size:0.75rem"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="Email" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em"></label>
+                    <label asp-for="Email" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em">Email address</label>
                     <input asp-for="Email" class="form-control" style="border-color:#ccc;font-size:0.9rem" placeholder="your@email.com" />
                     <span asp-validation-for="Email" class="text-danger" style="font-size:0.75rem"></span>
                 </div>
 
-                <div class="row g-3 mb-3">
-                    <div class="col-6">
-                        <label asp-for="Gender" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em"></label>
-                        <select asp-for="Gender" asp-items="Html.GetEnumSelectList<CityMixedGolf.Web.Models.Gender>()"
-                                class="form-select" style="border-color:#ccc;font-size:0.9rem">
-                            <option value="">Select...</option>
-                        </select>
-                        <span asp-validation-for="Gender" class="text-danger" style="font-size:0.75rem"></span>
-                    </div>
-                    <div class="col-6">
-                        <label asp-for="HandicapIndex" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em"></label>
-                        <input asp-for="HandicapIndex" class="form-control" style="border-color:#ccc;font-size:0.9rem" placeholder="e.g. 14.2" step="0.1" />
-                        <span asp-validation-for="HandicapIndex" class="text-danger" style="font-size:0.75rem"></span>
-                        <div style="font-size:0.7rem;color:var(--golf-muted);margin-top:3px">18.0 or under = Green band</div>
+                <div class="mb-3">
+                    <label asp-for="UsualPartnerId" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em">
+                        Usual playing partner <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span>
+                    </label>
+                    <select asp-for="UsualPartnerId" id="partner-select"
+                            class="form-select" style="border-color:#ccc;font-size:0.9rem"
+                            disabled>
+                        <option value="">— Select your name first —</option>
+                    </select>
+                    <span asp-validation-for="UsualPartnerId" class="text-danger" style="font-size:0.75rem"></span>
+                    <div style="font-size:0.7rem;color:var(--golf-muted);margin-top:3px">
+                        Only players of the opposite gender are shown. You can change this at any time from your profile.
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="Password" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em"></label>
+                    <label asp-for="Password" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em">Password</label>
                     <input asp-for="Password" class="form-control" style="border-color:#ccc;font-size:0.9rem" placeholder="At least 8 characters" />
                     <span asp-validation-for="Password" class="text-danger" style="font-size:0.75rem"></span>
                 </div>
 
                 <div class="mb-4">
-                    <label asp-for="ConfirmPassword" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em"></label>
+                    <label asp-for="ConfirmPassword" class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em">Confirm password</label>
                     <input asp-for="ConfirmPassword" class="form-control" style="border-color:#ccc;font-size:0.9rem" placeholder="Repeat password" />
                     <span asp-validation-for="ConfirmPassword" class="text-danger" style="font-size:0.75rem"></span>
                 </div>
@@ -72,7 +73,6 @@
             </form>
 
             <hr style="border-color:#ede8e0;margin:1.5rem 0" />
-
             <p style="font-size:0.875rem;color:var(--golf-muted);text-align:center;margin:0">
                 Already have an account?
                 <a asp-controller="Account" asp-action="Login" style="color:var(--golf-green);font-weight:500">Sign in</a>
@@ -82,5 +82,44 @@
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+<partial name="_ValidationScriptsPartial" />
+<script>
+// Serialise all players with their gender so we can filter partners client-side
+var allPlayers = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+    allPartners.Select(p => new { id = p.Id, name = p.FullName, gender = p.Gender.ToString() })
+));
+
+function updatePartners(playerSelect) {
+    var selectedId = playerSelect.value;
+    var partnerSelect = document.getElementById("partner-select");
+    partnerSelect.innerHTML = '<option value="">— No preference —</option>';
+
+    if (!selectedId) {
+        partnerSelect.disabled = true;
+        return;
+    }
+
+    // Find the selected player's gender
+    var player = allPlayers.find(function(p) { return p.id === selectedId; });
+    if (!player) { partnerSelect.disabled = true; return; }
+
+    var oppositeGender = player.gender === "Lady" ? "Gent" : "Lady";
+
+    var eligible = allPlayers.filter(function(p) {
+        return p.gender === oppositeGender && p.id !== selectedId;
+    });
+
+    eligible.forEach(function(p) {
+        var opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = p.name;
+        partnerSelect.appendChild(opt);
+    });
+
+    partnerSelect.disabled = eligible.length === 0;
+    if (eligible.length === 0) {
+        partnerSelect.innerHTML = '<option value="">No eligible partners yet</option>';
+    }
+}
+</script>
 }

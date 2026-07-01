@@ -83,5 +83,12 @@ public class ApplicationDbContext : IdentityDbContext<GolfPlayer>
              .HasForeignKey(gd => gd.CompetitionId)
              .OnDelete(DeleteBehavior.Cascade);
         });
+
+        // UsualPartner self-referencing FK on GolfPlayer
+        builder.Entity<GolfPlayer>()
+            .HasOne(p => p.UsualPartner)
+            .WithMany()
+            .HasForeignKey(p => p.UsualPartnerId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

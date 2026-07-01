@@ -1,7 +1,7 @@
 @model CityMixedGolf.Web.ViewModels.RegisterViewModel
 @{
     ViewData["Title"] = "Create account";
-    var allPartners = (List<CityMixedGolf.Web.Models.GolfPlayer>)ViewBag.AllPartners;
+    var allPartners = (List<CityMixedGolf.Web.Models.GolfPlayerRecord>)ViewBag.AllPartners;
 }
 
 <div class="hero-band">
@@ -18,7 +18,7 @@
         </div>
         <div class="p-4">
             <p style="font-size:0.875rem;color:var(--golf-muted);margin-bottom:1.25rem">
-                Select your name from the list below to link your account to your player profile.
+                Select your name from the list to link your account to your player profile.
                 If your name isn't listed, please contact the section admin.
             </p>
 
@@ -47,13 +47,12 @@
                         Usual playing partner <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span>
                     </label>
                     <select asp-for="UsualPartnerId" id="partner-select"
-                            class="form-select" style="border-color:#ccc;font-size:0.9rem"
-                            disabled>
+                            class="form-select" style="border-color:#ccc;font-size:0.9rem" disabled>
                         <option value="">— Select your name first —</option>
                     </select>
                     <span asp-validation-for="UsualPartnerId" class="text-danger" style="font-size:0.75rem"></span>
                     <div style="font-size:0.7rem;color:var(--golf-muted);margin-top:3px">
-                        Only players of the opposite gender are shown. You can change this at any time from your profile.
+                        Only players of the opposite gender are shown. You can change this in your profile at any time.
                     </div>
                 </div>
 
@@ -84,9 +83,9 @@
 @section Scripts {
 <partial name="_ValidationScriptsPartial" />
 <script>
-// Serialise all players with their gender so we can filter partners client-side
+// All players serialised for client-side partner filtering
 var allPlayers = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-    allPartners.Select(p => new { id = p.Id, name = p.FullName, gender = p.Gender.ToString() })
+    allPartners.Select(p => new { id = p.Id.ToString(), name = p.FullName, gender = p.Gender })
 ));
 
 function updatePartners(playerSelect) {
@@ -99,11 +98,11 @@ function updatePartners(playerSelect) {
         return;
     }
 
-    // Find the selected player's gender
     var player = allPlayers.find(function(p) { return p.id === selectedId; });
     if (!player) { partnerSelect.disabled = true; return; }
 
-    var oppositeGender = player.gender === "Lady" ? "Gent" : "Lady";
+    // Opposite gender: Male partners for Female players and vice versa
+    var oppositeGender = player.gender === "Female" ? "Male" : "Female";
 
     var eligible = allPlayers.filter(function(p) {
         return p.gender === oppositeGender && p.id !== selectedId;
@@ -117,9 +116,8 @@ function updatePartners(playerSelect) {
     });
 
     partnerSelect.disabled = eligible.length === 0;
-    if (eligible.length === 0) {
+    if (eligible.length === 0)
         partnerSelect.innerHTML = '<option value="">No eligible partners yet</option>';
-    }
 }
 </script>
 }

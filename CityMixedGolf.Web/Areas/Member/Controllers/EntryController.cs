@@ -27,19 +27,31 @@ public class EntryController : Controller
     {
         var player = await _userManager.GetUserAsync(User) ?? throw new UnauthorizedAccessException();
 
-        var entries = await _db.CompetitionEntries
+        // This player's entries
+        var myEntries = await _db.CompetitionEntries
             .Include(e => e.Competition)
             .Include(e => e.PreferredPartner)
             .Where(e => e.PlayerId == player.Id)
             .OrderByDescending(e => e.Competition.CompetitionDate)
             .ToListAsync();
 
+        // All open competitions
         var openCompetitions = await _db.Competitions
             .Where(c => c.Status == CompetitionStatus.Open
                 && c.EntryOpenDate <= DateTime.UtcNow
                 && c.EntryCloseDate >= DateTime.UtcNow)
             .ToListAsync();
 
+        // All entrants for each open competition (so dashboard shows full entry list)
+        var openCompIds = openCompetitions.Select(c => c.Id).ToList();
+        var allEntrants = await _db.CompetitionEntries
+            .Include(e => e.Player)
+            .Include(e => e.Competition)
+            .Where(e => openCompIds.Contains(e.CompetitionId) && e.Status == EntryStatus.Entered)
+            .OrderBy(e => e.Player.LastName)
+            .ToListAsync();
+
+        // History
         var history = await _db.DrawPairs
             .Include(dp => dp.GreenBandPlayer)
             .Include(dp => dp.RedBandPlayer)
@@ -50,8 +62,9 @@ public class EntryController : Controller
             .ToListAsync();
 
         ViewBag.Player = player;
-        ViewBag.Entries = entries;
+        ViewBag.MyEntries = myEntries;
         ViewBag.OpenCompetitions = openCompetitions;
+        ViewBag.AllEntrants = allEntrants;
         ViewBag.History = history;
 
         return View();
@@ -67,11 +80,12 @@ public class EntryController : Controller
             || competition.EntryCloseDate < DateTime.UtcNow)
             return NotFound();
 
-        // Check if already entered
         var existing = await _db.CompetitionEntries
-            .FirstOrDefaultAsync(e => e.PlayerId == player.Id && e.CompetitionId == competitionId && e.Status == EntryStatus.Entered);
+            .FirstOrDefaultAsync(e => e.PlayerId == player.Id
+                && e.CompetitionId == competitionId
+                && e.Status == EntryStatus.Entered);
 
-        // Build partner list — opposite gender only, who have also entered
+        // Eligible partners: opposite gender, have entered this competition
         var oppositeGender = player.Gender == Gender.Lady ? Gender.Gent : Gender.Lady;
         var eligiblePartners = await _db.CompetitionEntries
             .Include(e => e.Player)
@@ -82,7 +96,7 @@ public class EntryController : Controller
             .Select(e => e.Player)
             .ToListAsync();
 
-        // Get previous partners ordered by most recent
+        // Previous partners ordered by most recent
         var previousPartnerIds = await _db.DrawPairs
             .Include(dp => dp.GroupDraw)
             .Where(dp => dp.GroupDraw.IsPublished
@@ -92,7 +106,6 @@ public class EntryController : Controller
             .Distinct()
             .ToListAsync();
 
-        // Sort eligible partners: previous partners first (most recent first), then others
         var sortedPartners = eligiblePartners
             .OrderBy(p => {
                 var idx = previousPartnerIds.IndexOf(p.Id);
@@ -100,8 +113,10 @@ public class EntryController : Controller
             })
             .ToList();
 
-        // Default to most recent previous partner if available
-        var defaultPartnerId = sortedPartners.FirstOrDefault(p => previousPartnerIds.Contains(p.Id))?.Id;
+        // Default: usual partner if entered, else most recent previous partner
+        var defaultPartnerId = existing?.PreferredPartnerId
+            ?? (sortedPartners.Any(p => p.Id == player.UsualPartnerId) ? player.UsualPartnerId : null)
+            ?? sortedPartners.FirstOrDefault(p => previousPartnerIds.Contains(p.Id))?.Id;
 
         ViewBag.Competition = competition;
         ViewBag.ExistingEntry = existing;
@@ -109,7 +124,11 @@ public class EntryController : Controller
         ViewBag.PreviousPartnerIds = previousPartnerIds;
         ViewBag.DefaultPartnerId = defaultPartnerId;
 
-        return View(existing ?? new CompetitionEntry { CompetitionId = competitionId, PreferredPartnerId = defaultPartnerId });
+        return View(existing ?? new CompetitionEntry
+        {
+            CompetitionId = competitionId,
+            PreferredPartnerId = defaultPartnerId
+        });
     }
 
     [HttpPost]
@@ -123,13 +142,20 @@ public class EntryController : Controller
             return BadRequest("Entry is closed.");
 
         var existing = await _db.CompetitionEntries
-            .FirstOrDefaultAsync(e => e.PlayerId == player.Id && e.CompetitionId == model.CompetitionId && e.Status == EntryStatus.Entered);
+            .FirstOrDefaultAsync(e => e.PlayerId == player.Id
+                && e.CompetitionId == model.CompetitionId
+                && e.Status == EntryStatus.Entered);
 
         bool isNew = existing == null;
 
         if (existing == null)
         {
-            existing = new CompetitionEntry { PlayerId = player.Id, CompetitionId = model.CompetitionId, CreatedAt = DateTime.UtcNow };
+            existing = new CompetitionEntry
+            {
+                PlayerId = player.Id,
+                CompetitionId = model.CompetitionId,
+                CreatedAt = DateTime.UtcNow
+            };
             _db.CompetitionEntries.Add(existing);
         }
 
@@ -169,6 +195,18 @@ public class EntryController : Controller
 
         await _notifications.SendEntryCancelledAsync(entry.Id);
         TempData["Success"] = "Entry cancelled.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateNotifications(bool emailNotifications, bool whatsAppOptIn)
+    {
+        var player = await _userManager.GetUserAsync(User) ?? throw new UnauthorizedAccessException();
+        player.EmailNotifications = emailNotifications;
+        player.WhatsAppOptIn = whatsAppOptIn;
+        await _userManager.UpdateAsync(player);
+        TempData["Success"] = "Notification preferences saved.";
         return RedirectToAction(nameof(Index));
     }
 }

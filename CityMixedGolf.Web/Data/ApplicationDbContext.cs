@@ -14,6 +14,7 @@ public class ApplicationDbContext : IdentityDbContext<GolfPlayer>
     public DbSet<GroupDraw> GroupDraws => Set<GroupDraw>();
     public DbSet<DrawPair> DrawPairs => Set<DrawPair>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<GolfPlayerRecord> GolfPlayerRecords => Set<GolfPlayerRecord>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -82,6 +83,21 @@ public class ApplicationDbContext : IdentityDbContext<GolfPlayer>
              .WithMany(c => c.Draws)
              .HasForeignKey(gd => gd.CompetitionId)
              .OnDelete(DeleteBehavior.Cascade);
+        });
+
+
+        // GolfPlayerRecord — source of truth for player data
+        builder.Entity<GolfPlayerRecord>(e =>
+        {
+            e.HasKey(p => p.Id);
+            e.Property(p => p.Id).ValueGeneratedNever(); // preserves HomeAdmin Id
+            e.Property(p => p.FullName).IsRequired().HasMaxLength(200);
+            e.Property(p => p.Gender).IsRequired().HasMaxLength(10);
+            e.Property(p => p.HandicapIndex).HasPrecision(5, 2);
+            e.HasOne(p => p.LinkedAccount)
+             .WithOne(u => u.PlayerRecord)
+             .HasForeignKey<GolfPlayer>(u => u.GolfPlayerRecordId)
+             .OnDelete(DeleteBehavior.SetNull);
         });
 
         // UsualPartner self-referencing FK on GolfPlayer

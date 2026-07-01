@@ -41,6 +41,7 @@ else
 }
 
 builder.Services.AddScoped<IDrawService, DrawService>();
+builder.Services.AddScoped<IPlayerImportService, PlayerImportService>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();

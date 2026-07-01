@@ -8,39 +8,59 @@ namespace CityMixedGolf.Web.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "UsualPartnerId",
-                table: "AspNetUsers",
-                type: "nvarchar(450)",
-                nullable: true);
+            // Column and index are applied manually via SSMS if not already present.
+            // This migration records the change in __EFMigrationsHistory only.
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE TABLE_NAME = 'AspNetUsers' AND COLUMN_NAME = 'UsualPartnerId'
+                )
+                BEGIN
+                    ALTER TABLE AspNetUsers ADD UsualPartnerId NVARCHAR(450) NULL;
+                END
+            ");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_AspNetUsers_UsualPartnerId",
-                table: "AspNetUsers",
-                column: "UsualPartnerId");
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT 1 FROM sys.indexes
+                    WHERE name = 'IX_AspNetUsers_UsualPartnerId'
+                    AND object_id = OBJECT_ID('AspNetUsers')
+                )
+                BEGIN
+                    CREATE INDEX IX_AspNetUsers_UsualPartnerId ON AspNetUsers (UsualPartnerId);
+                END
+            ");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_AspNetUsers_AspNetUsers_UsualPartnerId",
-                table: "AspNetUsers",
-                column: "UsualPartnerId",
-                principalTable: "AspNetUsers",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.SetNull);
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT 1 FROM sys.foreign_keys
+                    WHERE name = 'FK_AspNetUsers_AspNetUsers_UsualPartnerId'
+                )
+                BEGIN
+                    ALTER TABLE AspNetUsers
+                    ADD CONSTRAINT FK_AspNetUsers_AspNetUsers_UsualPartnerId
+                    FOREIGN KEY (UsualPartnerId) REFERENCES AspNetUsers(Id)
+                    ON DELETE NO ACTION;
+                END
+            ");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_AspNetUsers_AspNetUsers_UsualPartnerId",
-                table: "AspNetUsers");
+            migrationBuilder.Sql(@"
+                IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_AspNetUsers_AspNetUsers_UsualPartnerId')
+                    ALTER TABLE AspNetUsers DROP CONSTRAINT FK_AspNetUsers_AspNetUsers_UsualPartnerId;
+            ");
 
-            migrationBuilder.DropIndex(
-                name: "IX_AspNetUsers_UsualPartnerId",
-                table: "AspNetUsers");
+            migrationBuilder.Sql(@"
+                IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_AspNetUsers_UsualPartnerId' AND object_id = OBJECT_ID('AspNetUsers'))
+                    DROP INDEX IX_AspNetUsers_UsualPartnerId ON AspNetUsers;
+            ");
 
-            migrationBuilder.DropColumn(
-                name: "UsualPartnerId",
-                table: "AspNetUsers");
+            migrationBuilder.Sql(@"
+                IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'AspNetUsers' AND COLUMN_NAME = 'UsualPartnerId')
+                    ALTER TABLE AspNetUsers DROP COLUMN UsualPartnerId;
+            ");
         }
     }
 }

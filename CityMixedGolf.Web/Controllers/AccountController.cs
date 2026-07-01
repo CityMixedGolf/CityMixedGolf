@@ -32,7 +32,6 @@ public class AccountController : Controller
     {
         if (User.Identity?.IsAuthenticated == true)
             return RedirectToAction("Index", "Home", new { area = "Public" });
-
         ViewBag.ReturnUrl = returnUrl;
         return View();
     }
@@ -53,10 +52,9 @@ public class AccountController : Controller
             return RedirectToAction("Index", "Entry", new { area = "Member" });
         }
 
-        if (result.IsLockedOut)
-            ModelState.AddModelError("", "Account locked. Please try again in a few minutes.");
-        else
-            ModelState.AddModelError("", "Invalid email or password.");
+        ModelState.AddModelError("", result.IsLockedOut
+            ? "Account locked. Please try again in a few minutes."
+            : "Invalid email or password.");
 
         return View(model);
     }
@@ -83,18 +81,29 @@ public class AccountController : Controller
             return View(model);
         }
 
-        // Find the existing unregistered player record
-        var player = await _db.Users.FirstOrDefaultAsync(p =>
-            p.Id == model.PlayerId && p.UserName == null);
+        // Find the GolfPlayerRecord they selected
+        var playerRecord = await _db.GolfPlayerRecords
+            .FirstOrDefaultAsync(p => p.Id == model.PlayerId && p.IsActive);
 
-        if (player == null)
+        if (playerRecord == null)
         {
-            ModelState.AddModelError("PlayerId", "Player not found or already registered. Please contact the admin.");
+            ModelState.AddModelError("PlayerId", "Player not found. Please contact the admin.");
             await LoadRegisterViewBag(model.PlayerId);
             return View(model);
         }
 
-        // Check email isn't already taken
+        // Check this player record isn't already claimed
+        var alreadyClaimed = await _db.Users
+            .AnyAsync(u => u.GolfPlayerRecordId == model.PlayerId);
+
+        if (alreadyClaimed)
+        {
+            ModelState.AddModelError("PlayerId", "This player already has a registered account. Contact admin if this is an error.");
+            await LoadRegisterViewBag(model.PlayerId);
+            return View(model);
+        }
+
+        // Check email isn't taken
         if (await _userManager.FindByEmailAsync(model.Email) != null)
         {
             ModelState.AddModelError("Email", "An account with this email already exists.");
@@ -102,62 +111,71 @@ public class AccountController : Controller
             return View(model);
         }
 
-        // Claim the existing player record by setting Identity credentials
-        player.UserName = model.Email;
-        player.NormalizedUserName = model.Email.ToUpperInvariant();
-        player.Email = model.Email;
-        player.NormalizedEmail = model.Email.ToUpperInvariant();
-        player.EmailConfirmed = true;
-        player.UsualPartnerId = string.IsNullOrEmpty(model.UsualPartnerId) ? null : model.UsualPartnerId;
+        // Split FullName into First/Last for display
+        var nameParts = playerRecord.FullName.Trim().Split(' ', 2);
+        var firstName = nameParts[0];
+        var lastName = nameParts.Length > 1 ? nameParts[1] : "";
 
-        var passwordResult = await _userManager.AddPasswordAsync(player, model.Password);
-        if (!passwordResult.Succeeded)
+        // Resolve UsualPartnerId — store as the GolfPlayer identity Id of the partner
+        // We'll look up by GolfPlayerRecordId
+        string? usualPartnerIdentityId = null;
+        if (model.UsualPartnerId.HasValue)
         {
-            foreach (var error in passwordResult.Errors)
-                ModelState.AddModelError("", error.Description);
-            await LoadRegisterViewBag(model.PlayerId);
-            return View(model);
+            var partnerAccount = await _db.Users
+                .FirstOrDefaultAsync(u => u.GolfPlayerRecordId == model.UsualPartnerId.Value);
+            usualPartnerIdentityId = partnerAccount?.Id;
+            // If partner hasn't registered yet, we store null for now
+            // The partner preference is also stored on PlayerRecord for display during registration
         }
 
-        var updateResult = await _userManager.UpdateAsync(player);
-        if (!updateResult.Succeeded)
+        var player = new GolfPlayer
         {
-            foreach (var error in updateResult.Errors)
-                ModelState.AddModelError("", error.Description);
-            await LoadRegisterViewBag(model.PlayerId);
-            return View(model);
+            UserName = model.Email,
+            Email = model.Email,
+            EmailConfirmed = true,
+            FirstName = firstName,
+            LastName = lastName,
+            GolfPlayerRecordId = model.PlayerId,
+            IsActive = true,
+            EmailNotifications = true,
+            UsualPartnerId = usualPartnerIdentityId,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var result = await _userManager.CreateAsync(player, model.Password);
+
+        if (result.Succeeded)
+        {
+            // Store the usual partner preference on the record too (by record id)
+            // so it persists even if partner registers later
+            playerRecord.LastUpdated = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+
+            await _signInManager.SignInAsync(player, isPersistent: false);
+            TempData["Success"] = $"Welcome, {player.FirstName}! Your account is ready.";
+            return RedirectToAction("Index", "Entry", new { area = "Member" });
         }
 
-        await _signInManager.SignInAsync(player, isPersistent: false);
-        TempData["Success"] = $"Welcome, {player.FirstName}! Your account is ready.";
-        return RedirectToAction("Index", "Entry", new { area = "Member" });
+        foreach (var error in result.Errors)
+            ModelState.AddModelError("", error.Description);
+
+        await LoadRegisterViewBag(model.PlayerId);
+        return View(model);
     }
 
-    private async Task LoadRegisterViewBag(string? selectedPlayerId)
+    private async Task LoadRegisterViewBag(int? selectedId)
     {
-        // Only show players who have no UserName set (i.e. not yet registered)
-        var unregistered = await _db.Users
-            .Where(p => p.UserName == null && p.IsActive)
-            .OrderBy(p => p.LastName).ThenBy(p => p.FirstName)
+        // Only show active player records that haven't been claimed yet
+        var unclaimed = await _db.GolfPlayerRecords
+            .Where(p => p.IsActive && !_db.Users.Any(u => u.GolfPlayerRecordId == p.Id))
+            .OrderBy(p => p.FullName)
             .ToListAsync();
 
-        ViewBag.Players = new SelectList(unregistered, "Id", "FullName", selectedPlayerId);
-
-        // Load the selected player's gender so we can filter partners client-side
-        GolfPlayer? selected = null;
-        if (!string.IsNullOrEmpty(selectedPlayerId))
-            selected = unregistered.FirstOrDefault(p => p.Id == selectedPlayerId);
-
-        ViewBag.SelectedPlayer = selected;
-
-        // Potential partners — all active players of opposite gender
-        // We'll load all and filter client-side based on player selection
-        var allPlayers = await _db.Users
+        ViewBag.Players = new SelectList(unclaimed, "Id", "FullName", selectedId);
+        ViewBag.AllPartners = await _db.GolfPlayerRecords
             .Where(p => p.IsActive)
-            .OrderBy(p => p.LastName).ThenBy(p => p.FirstName)
+            .OrderBy(p => p.FullName)
             .ToListAsync();
-
-        ViewBag.AllPartners = allPlayers;
     }
 
     // ── Logout ─────────────────────────────────────────────────
@@ -179,12 +197,28 @@ public class AccountController : Controller
         var player = await _userManager.GetUserAsync(User)
             ?? throw new UnauthorizedAccessException();
 
-        var partners = await _db.Users
-            .Where(p => p.IsActive && p.Gender != player.Gender && p.Id != player.Id)
-            .OrderBy(p => p.LastName).ThenBy(p => p.FirstName)
+        // Partners: opposite gender from GolfPlayerRecords
+        var myRecord = player.GolfPlayerRecordId.HasValue
+            ? await _db.GolfPlayerRecords.FindAsync(player.GolfPlayerRecordId.Value)
+            : null;
+
+        var oppositeGender = myRecord?.Gender == "Female" ? "Male" : "Female";
+
+        var partners = await _db.GolfPlayerRecords
+            .Where(p => p.IsActive && p.Gender == oppositeGender)
+            .OrderBy(p => p.FullName)
             .ToListAsync();
 
-        ViewBag.Partners = new SelectList(partners, "Id", "FullName", player.UsualPartnerId);
+        // Find current usual partner record id
+        int? currentUsualRecordId = null;
+        if (player.UsualPartnerId != null)
+        {
+            var usualPartner = await _db.Users
+                .FirstOrDefaultAsync(u => u.Id == player.UsualPartnerId);
+            currentUsualRecordId = usualPartner?.GolfPlayerRecordId;
+        }
+
+        ViewBag.Partners = new SelectList(partners, "Id", "FullName", currentUsualRecordId);
 
         return View(new ProfileViewModel
         {
@@ -193,7 +227,7 @@ public class AccountController : Controller
             MobileNumber = player.MobileNumber,
             WhatsAppOptIn = player.WhatsAppOptIn,
             EmailNotifications = player.EmailNotifications,
-            UsualPartnerId = player.UsualPartnerId
+            UsualPartnerId = currentUsualRecordId
         });
     }
 
@@ -208,7 +242,18 @@ public class AccountController : Controller
         player.MobileNumber = model.MobileNumber;
         player.WhatsAppOptIn = model.WhatsAppOptIn;
         player.EmailNotifications = model.EmailNotifications;
-        player.UsualPartnerId = string.IsNullOrEmpty(model.UsualPartnerId) ? null : model.UsualPartnerId;
+
+        // Resolve UsualPartnerId from GolfPlayerRecord.Id to GolfPlayer identity Id
+        if (model.UsualPartnerId.HasValue)
+        {
+            var partnerAccount = await _db.Users
+                .FirstOrDefaultAsync(u => u.GolfPlayerRecordId == model.UsualPartnerId.Value);
+            player.UsualPartnerId = partnerAccount?.Id;
+        }
+        else
+        {
+            player.UsualPartnerId = null;
+        }
 
         await _userManager.UpdateAsync(player);
         TempData["Success"] = "Profile updated.";

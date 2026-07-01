@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using CityMixedGolf.Web.Models;
 
 namespace CityMixedGolf.Web.ViewModels;
 
@@ -19,23 +18,18 @@ public class LoginViewModel
 
 public class RegisterViewModel
 {
-    /// <summary>
-    /// The Id of an existing unregistered GolfPlayer that this account will claim.
-    /// </summary>
+    /// <summary>Id from GolfPlayerRecord — the player list entry to claim.</summary>
     [Required(ErrorMessage = "Please select your name from the list.")]
     [Display(Name = "Your name")]
-    public string PlayerId { get; set; } = string.Empty;
+    public int PlayerId { get; set; }
 
     [Required]
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Optional usual partner — shown as default when entering competitions.
-    /// Must be opposite gender to the selected player.
-    /// </summary>
+    /// <summary>GolfPlayerRecord.Id of the usual partner (opposite gender).</summary>
     [Display(Name = "Usual playing partner")]
-    public string? UsualPartnerId { get; set; }
+    public int? UsualPartnerId { get; set; }
 
     [Required]
     [DataType(DataType.Password)]
@@ -56,5 +50,5 @@ public class ProfileViewModel
     public string? MobileNumber { get; set; }
     public bool WhatsAppOptIn { get; set; }
     public bool EmailNotifications { get; set; }
-    public string? UsualPartnerId { get; set; }
+    public int? UsualPartnerId { get; set; }
 }

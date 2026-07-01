@@ -1,0 +1,52 @@
+@{
+    ViewData["Title"] = "Import Players";
+}
+
+<div class="hero-band">
+    <div class="container">
+        <h1>Import Players</h1>
+        <p>Upload the HomeAdmin CSV export to refresh player data</p>
+    </div>
+</div>
+
+<div class="container mt-4" style="max-width:560px">
+    <div class="golf-panel mb-3">
+        <div class="golf-panel-header"><h2 class="golf-panel-title"><i class="ti ti-upload"></i> Upload CSV</h2></div>
+        <div class="p-4">
+            <form method="post" asp-area="Admin" asp-controller="Players" asp-action="Import"
+                  enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="alert-golf-warning mb-3"></div>
+
+                <div class="mb-4">
+                    <label class="form-label" style="font-size:0.8rem;font-weight:500;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.04em">
+                        CSV file
+                    </label>
+                    <input type="file" name="csvFile" accept=".csv"
+                           class="form-control" style="border-color:#ccc" />
+                </div>
+
+                <button type="submit" class="btn btn-golf-primary w-100">
+                    <i class="ti ti-upload"></i> Import players
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="golf-panel p-3" style="background:#f9f6f0">
+        <div style="font-size:0.8rem;color:var(--golf-muted)">
+            <strong style="color:var(--golf-text)">Expected CSV format</strong><br />
+            Matches the HomeAdmin export. Columns required (any order, headers must match):
+            <ul class="mt-2 mb-2" style="padding-left:1.2rem">
+                <li><code>Id</code> — optional but recommended to match existing records</li>
+                <li><code>FullName</code> — player's full name</li>
+                <li><code>HandicapIndex</code> — decimal e.g. <code>14.2</code></li>
+                <li><code>Gender</code> — <code>Male</code> or <code>Female</code></li>
+            </ul>
+            <strong>On import:</strong> existing players are updated by Id then name match.
+            New players are added. Band colour is set automatically (≤18 = Green, &gt;18 = Red)
+            unless already manually overridden in the player list.
+            Registered accounts are never affected — only player data is refreshed.
+        </div>
+    </div>
+</div>

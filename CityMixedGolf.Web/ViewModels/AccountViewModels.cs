@@ -19,25 +19,23 @@ public class LoginViewModel
 
 public class RegisterViewModel
 {
-    [Required]
-    [Display(Name = "First name")]
-    public string FirstName { get; set; } = string.Empty;
-
-    [Required]
-    [Display(Name = "Last name")]
-    public string LastName { get; set; } = string.Empty;
+    /// <summary>
+    /// The Id of an existing unregistered GolfPlayer that this account will claim.
+    /// </summary>
+    [Required(ErrorMessage = "Please select your name from the list.")]
+    [Display(Name = "Your name")]
+    public string PlayerId { get; set; } = string.Empty;
 
     [Required]
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
 
-    [Required]
-    public Gender Gender { get; set; }
-
-    [Required]
-    [Range(0, 54)]
-    [Display(Name = "Handicap index")]
-    public decimal HandicapIndex { get; set; }
+    /// <summary>
+    /// Optional usual partner — shown as default when entering competitions.
+    /// Must be opposite gender to the selected player.
+    /// </summary>
+    [Display(Name = "Usual playing partner")]
+    public string? UsualPartnerId { get; set; }
 
     [Required]
     [DataType(DataType.Password)]
@@ -49,4 +47,14 @@ public class RegisterViewModel
     [Compare("Password", ErrorMessage = "Passwords do not match.")]
     [Display(Name = "Confirm password")]
     public string ConfirmPassword { get; set; } = string.Empty;
+}
+
+public class ProfileViewModel
+{
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string? MobileNumber { get; set; }
+    public bool WhatsAppOptIn { get; set; }
+    public bool EmailNotifications { get; set; }
+    public string? UsualPartnerId { get; set; }
 }

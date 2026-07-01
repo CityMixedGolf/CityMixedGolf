@@ -7,9 +7,16 @@ public class GolfPlayer : IdentityUser
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string FullName => $"{FirstName} {LastName}";
-    public Gender Gender { get; set; }
-    public decimal HandicapIndex { get; set; }
-    public BandColour BandColour { get; set; }
+
+    // Link to the GolfPlayerRecord (source of truth for handicap/gender/band)
+    public int? GolfPlayerRecordId { get; set; }
+    public virtual GolfPlayerRecord? PlayerRecord { get; set; }
+
+    // Convenience properties that read from PlayerRecord if linked
+    public decimal HandicapIndex => PlayerRecord?.HandicapIndex ?? 0;
+    public Gender Gender => PlayerRecord?.GenderEnum ?? Models.Gender.Gent;
+    public BandColour BandColour => PlayerRecord?.BandColour ?? Models.BandColour.Unassigned;
+
     public bool IsActive { get; set; } = true;
     public bool IsAdmin { get; set; } = false;
     public string? MobileNumber { get; set; }
@@ -17,7 +24,6 @@ public class GolfPlayer : IdentityUser
     public bool EmailNotifications { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    // Usual playing partner — persists across competitions as a default preference
     public string? UsualPartnerId { get; set; }
     public virtual GolfPlayer? UsualPartner { get; set; }
 

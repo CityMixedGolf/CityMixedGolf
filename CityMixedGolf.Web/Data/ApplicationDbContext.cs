@@ -89,6 +89,6 @@ public class ApplicationDbContext : IdentityDbContext<GolfPlayer>
             .HasOne(p => p.UsualPartner)
             .WithMany()
             .HasForeignKey(p => p.UsualPartnerId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.ClientSetNull);
     }
 }

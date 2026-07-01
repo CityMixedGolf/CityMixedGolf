@@ -1,0 +1,96 @@
+@model IEnumerable<CityMixedGolf.Web.Models.GolfPlayerRecord>
+@{
+    ViewData["Title"] = "Player List";
+}
+
+<div class="hero-band">
+    <div class="container d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+            <h1>Player List</h1>
+            <p>@Model.Count(p => p.IsActive) active players &middot; Last imported @(Model.Any() ? Model.Max(p => p.LastUpdated).ToString("dd MMM yyyy HH:mm") : "never")</p>
+        </div>
+        <a asp-area="Admin" asp-controller="Players" asp-action="Import" class="btn btn-golf-gold">
+            <i class="ti ti-upload"></i> Import CSV
+        </a>
+    </div>
+</div>
+
+<div class="container mt-4">
+    @if (TempData["ImportResult"] != null)
+    {
+        <div class="alert-golf-success mb-3"><i class="ti ti-circle-check me-1"></i> @TempData["ImportResult"]</div>
+    }
+    @if (TempData["ImportErrors"] != null)
+    {
+        <div class="alert-golf-warning mb-3">
+            <strong>Some rows had errors:</strong><br />
+            @foreach (var err in TempData["ImportErrors"]!.ToString()!.Split('|'))
+            {
+                <div style="font-size:0.8rem">@err</div>
+            }
+        </div>
+    }
+
+    <div class="golf-panel">
+        <div class="golf-panel-header">
+            <h2 class="golf-panel-title"><i class="ti ti-users"></i> Players (@Model.Count())</h2>
+        </div>
+        <table class="golf-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Gender</th>
+                    <th>Handicap</th>
+                    <th>Band</th>
+                    <th>Account</th>
+                    <th>Active</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var p in Model.OrderBy(p => p.FullName))
+            {
+                <tr style="@(!p.IsActive ? "opacity:0.5" : "")">
+                    <td class="fw-500">@p.FullName</td>
+                    <td style="color:var(--golf-muted)">@p.GenderDisplay</td>
+                    <td>@p.HandicapIndex.ToString("F1")</td>
+                    <td>
+                        <form method="post" asp-area="Admin" asp-controller="Players" asp-action="SetBand"
+                              asp-route-id="@p.Id" class="d-flex gap-1 align-items-center">
+                            @Html.AntiForgeryToken()
+                            <select name="band" class="form-select form-select-sm" style="width:90px;border-color:#ccc;font-size:0.8rem"
+                                    onchange="this.form.submit()">
+                                @foreach (var band in Enum.GetValues<CityMixedGolf.Web.Models.BandColour>())
+                                {
+                                    <option value="@band" @(p.BandColour == band ? "selected" : "")>@band</option>
+                                }
+                            </select>
+                        </form>
+                    </td>
+                    <td>
+                        @if (p.LinkedAccount != null)
+                        {
+                            <span style="font-size:0.8rem;color:#1a6e3a"><i class="ti ti-circle-check"></i> @p.LinkedAccount.Email</span>
+                        }
+                        else
+                        {
+                            <span style="font-size:0.8rem;color:var(--golf-muted)"><i class="ti ti-clock"></i> Not registered</span>
+                        }
+                    </td>
+                    <td>
+                        <form method="post" asp-area="Admin" asp-controller="Players"
+                              asp-action="ToggleActive" asp-route-id="@p.Id">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm"
+                                    style="font-size:0.75rem;@(p.IsActive ? "color:#c0392b;border:1px solid #e0b0ad" : "color:#1a6e3a;border:1px solid #c8e8d4")">
+                                @(p.IsActive ? "Deactivate" : "Activate")
+                            </button>
+                        </form>
+                    </td>
+                    <td></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

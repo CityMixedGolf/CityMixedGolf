@@ -24,27 +24,27 @@ public static class DataSeeder
         if (await db.Competitions.AnyAsync()) return;
 
         // ── Step 1: Create GolfPlayerRecords (source of truth) ──
-        var recordSeeds = new (int Id, string FullName, decimal Hcp, string Gender, BandColour Band)[]
+        var recordSeeds = new (int Id, string FullName, decimal Hcp, string Gender)[]
         {
-            (1,  "Sarah Mitchell",  14.2m, "Female", BandColour.Green),
-            (2,  "Anne Blackwell",  16.1m, "Female", BandColour.Green),
-            (3,  "Helen Ward",      12.8m, "Female", BandColour.Green),
-            (4,  "Jane Cooper",     15.5m, "Female", BandColour.Green),
-            (5,  "Claire Forsyth",  13.9m, "Female", BandColour.Green),
-            (6,  "Margaret Holt",   19.4m, "Female", BandColour.Red),
-            (7,  "Diane Pearce",    21.0m, "Female", BandColour.Red),
-            (8,  "James Thornton",  18.5m, "Male",   BandColour.Red),
-            (9,  "David Park",      19.0m, "Male",   BandColour.Red),
-            (10, "Tom Bradley",     20.4m, "Male",   BandColour.Red),
-            (11, "Robert Hughes",   17.2m, "Male",   BandColour.Red),
-            (12, "Neil Watson",     22.1m, "Male",   BandColour.Red),
-            (13, "Mark Ellison",    11.6m, "Male",   BandColour.Green),
-            (14, "Paul Carrick",    13.0m, "Male",   BandColour.Green),
+            (1,  "Sarah Mitchell",  14.2m, "Female"),
+            (2,  "Anne Blackwell",  16.1m, "Female"),
+            (3,  "Helen Ward",      12.8m, "Female"),
+            (4,  "Jane Cooper",     15.5m, "Female"),
+            (5,  "Claire Forsyth",  13.9m, "Female"),
+            (6,  "Margaret Holt",   19.4m, "Female"),
+            (7,  "Diane Pearce",    21.0m, "Female"),
+            (8,  "James Thornton",  18.5m, "Male"),
+            (9,  "David Park",      19.0m, "Male"),
+            (10, "Tom Bradley",     20.4m, "Male"),
+            (11, "Robert Hughes",   17.2m, "Male"),
+            (12, "Neil Watson",     22.1m, "Male"),
+            (13, "Mark Ellison",    11.6m, "Male"),
+            (14, "Paul Carrick",    13.0m, "Male"),
         };
 
         if (!await db.GolfPlayerRecords.AnyAsync())
         {
-            foreach (var (id, fullName, hcp, gender, band) in recordSeeds)
+            foreach (var (id, fullName, hcp, gender) in recordSeeds)
             {
                 db.GolfPlayerRecords.Add(new GolfPlayerRecord
                 {
@@ -52,7 +52,6 @@ public static class DataSeeder
                     FullName = fullName,
                     HandicapIndex = hcp,
                     Gender = gender,
-                    BandColour = band,
                     IsActive = true,
                     LastUpdated = DateTime.UtcNow.AddMonths(-6)
                 });
@@ -161,8 +160,8 @@ public static class DataSeeder
                 OrderOfMeritPoints = points
             });
             db.CompetitionEntries.AddRange(
-                new CompetitionEntry { CompetitionId = pastComp.Id, PlayerId = green.Id, Status = EntryStatus.Entered, TeePreference = TeePreference.NoPreference, CreatedAt = DateTime.UtcNow.AddDays(-30) },
-                new CompetitionEntry { CompetitionId = pastComp.Id, PlayerId = red.Id,   Status = EntryStatus.Entered, TeePreference = TeePreference.NoPreference, CreatedAt = DateTime.UtcNow.AddDays(-30) }
+                new CompetitionEntry { CompetitionId = pastComp.Id, PlayerId = green.Id, Status = EntryStatus.Entered, BandColour = BandColour.Green, TeePreference = TeePreference.NoPreference, CreatedAt = DateTime.UtcNow.AddDays(-30) },
+                new CompetitionEntry { CompetitionId = pastComp.Id, PlayerId = red.Id,   Status = EntryStatus.Entered, BandColour = BandColour.Red,   TeePreference = TeePreference.NoPreference, CreatedAt = DateTime.UtcNow.AddDays(-30) }
             );
         }
         await db.SaveChangesAsync();
@@ -217,6 +216,7 @@ public static class DataSeeder
                 Position = pos,
                 OrderOfMeritPoints = points
             });
+            // Note: no CompetitionEntries for pastComp2 as they were added with the draw pairs directly
         }
         await db.SaveChangesAsync();
 
@@ -234,13 +234,21 @@ public static class DataSeeder
         db.Competitions.Add(openComp);
         await db.SaveChangesAsync();
 
-        foreach (var name in new[] { "Sarah Mitchell", "James Thornton", "Helen Ward", "Robert Hughes" })
+        var openEntryData = new (string Name, BandColour Band)[]
+        {
+            ("Sarah Mitchell", BandColour.Green),
+            ("James Thornton", BandColour.Red),
+            ("Helen Ward",     BandColour.Green),
+            ("Robert Hughes",  BandColour.Red),
+        };
+        foreach (var (name, band) in openEntryData)
         {
             db.CompetitionEntries.Add(new CompetitionEntry
             {
                 CompetitionId = openComp.Id,
                 PlayerId = Find(name).Id,
                 Status = EntryStatus.Entered,
+                BandColour = band,
                 TeePreference = TeePreference.NoPreference,
                 CreatedAt = DateTime.UtcNow.AddDays(-2)
             });

@@ -29,11 +29,12 @@ public class ApplicationDbContext : IdentityDbContext<GolfPlayer>
             // These are computed from GolfPlayerRecord — not stored on AspNetUsers
             e.Ignore(p => p.HandicapIndex);
             e.Ignore(p => p.Gender);
-            e.Ignore(p => p.BandColour);
         });
 
         builder.Entity<CompetitionEntry>(e =>
         {
+            e.Property(ce => ce.BandColour).HasDefaultValue(BandColour.Unassigned);
+
             e.HasOne(ce => ce.Competition)
              .WithMany(c => c.Entries)
              .HasForeignKey(ce => ce.CompetitionId)
@@ -90,7 +91,7 @@ public class ApplicationDbContext : IdentityDbContext<GolfPlayer>
         });
 
 
-        // GolfPlayerRecord — source of truth for player data
+        // GolfPlayerRecord — source of truth for player data (no BandColour — that's per competition)
         builder.Entity<GolfPlayerRecord>(e =>
         {
             e.HasKey(p => p.Id);

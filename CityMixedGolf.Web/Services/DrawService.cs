@@ -26,15 +26,17 @@ public class DrawService : IDrawService
         // Load active entries for this competition
         var entries = await _db.CompetitionEntries
             .Include(e => e.Player)
+                .ThenInclude(p => p.PlayerRecord)
             .Where(e => e.CompetitionId == competitionId && e.Status == EntryStatus.Entered)
             .ToListAsync();
 
+        // BandColour is on PlayerRecord, not on AspNetUsers — filter in memory after load
         var greenPlayers = entries
-            .Where(e => e.Player.BandColour == BandColour.Green && !e.EnteringAsSingle)
+            .Where(e => !e.EnteringAsSingle && e.Player.BandColour == BandColour.Green)
             .Select(e => e.Player).ToList();
 
         var redPlayers = entries
-            .Where(e => e.Player.BandColour == BandColour.Red && !e.EnteringAsSingle)
+            .Where(e => !e.EnteringAsSingle && e.Player.BandColour == BandColour.Red)
             .Select(e => e.Player).ToList();
 
         var singles = entries.Where(e => e.EnteringAsSingle).Select(e => e.Player).ToList();
@@ -42,6 +44,8 @@ public class DrawService : IDrawService
         // Load full pairing history for conflict detection
         var pairingHistory = await _db.DrawPairs
             .Include(dp => dp.GroupDraw)
+            .Include(dp => dp.GreenBandPlayer).ThenInclude(p => p.PlayerRecord)
+            .Include(dp => dp.RedBandPlayer).ThenInclude(p => p.PlayerRecord)
             .Where(dp => dp.GroupDraw.IsPublished)
             .ToListAsync();
 

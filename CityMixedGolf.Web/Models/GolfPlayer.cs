@@ -8,14 +8,15 @@ public class GolfPlayer : IdentityUser
     public string LastName { get; set; } = string.Empty;
     public string FullName => $"{FirstName} {LastName}";
 
-    // Link to the GolfPlayerRecord (source of truth for handicap/gender/band)
+    // Link to the GolfPlayerRecord (source of truth for handicap/gender)
     public int? GolfPlayerRecordId { get; set; }
     public virtual GolfPlayerRecord? PlayerRecord { get; set; }
 
     // Convenience properties that read from PlayerRecord if linked
     public decimal HandicapIndex => PlayerRecord?.HandicapIndex ?? 0;
     public Gender Gender => PlayerRecord?.GenderEnum ?? Models.Gender.Gent;
-    public BandColour BandColour => PlayerRecord?.BandColour ?? Models.BandColour.Unassigned;
+
+    // BandColour is NOT on GolfPlayer — it is per-competition on CompetitionEntry
 
     public bool IsActive { get; set; } = true;
     public bool IsAdmin { get; set; } = false;

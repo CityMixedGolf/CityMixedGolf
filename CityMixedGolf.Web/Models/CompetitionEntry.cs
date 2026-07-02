@@ -10,6 +10,14 @@ public class CompetitionEntry
     public TeePreference TeePreference { get; set; } = TeePreference.NoPreference;
     public string? SpecialRequests { get; set; }
     public EntryStatus Status { get; set; } = EntryStatus.Entered;
+
+    /// <summary>
+    /// Band colour assigned by admin for this specific competition.
+    /// Defaults to Unassigned until admin sets it before the draw.
+    /// Allows players at the handicap boundary to be green one competition and red another.
+    /// </summary>
+    public BandColour BandColour { get; set; } = BandColour.Unassigned;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

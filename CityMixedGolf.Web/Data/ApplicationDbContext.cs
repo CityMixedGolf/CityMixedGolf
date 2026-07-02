@@ -22,10 +22,14 @@ public class ApplicationDbContext : IdentityDbContext<GolfPlayer>
 
         builder.Entity<GolfPlayer>(e =>
         {
-            e.Property(p => p.HandicapIndex).HasPrecision(5, 1);
             e.Property(p => p.FirstName).HasMaxLength(100);
             e.Property(p => p.LastName).HasMaxLength(100);
             e.Property(p => p.MobileNumber).HasMaxLength(20);
+
+            // These are computed from GolfPlayerRecord — not stored on AspNetUsers
+            e.Ignore(p => p.HandicapIndex);
+            e.Ignore(p => p.Gender);
+            e.Ignore(p => p.BandColour);
         });
 
         builder.Entity<CompetitionEntry>(e =>

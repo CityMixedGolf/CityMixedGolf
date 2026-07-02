@@ -21,8 +21,8 @@ public class HomeController : Controller
 
         // Latest published draw results
         var latestResults = await _db.DrawPairs
-            .Include(dp => dp.GreenBandPlayer)
-            .Include(dp => dp.RedBandPlayer)
+            .Include(dp => dp.GreenBandPlayer).ThenInclude(p => p.PlayerRecord)
+            .Include(dp => dp.RedBandPlayer).ThenInclude(p => p.PlayerRecord)
             .Include(dp => dp.GroupDraw).ThenInclude(gd => gd.Competition)
             .Where(dp => dp.GroupDraw.IsPublished
                 && dp.Score != null
@@ -37,8 +37,8 @@ public class HomeController : Controller
         // they happened to be drawn into. Band colour reflects handicap grouping, not
         // gender, so a lady can sit in the red band and vice versa.
         var publishedPairs = await _db.DrawPairs
-            .Include(dp => dp.GreenBandPlayer)
-            .Include(dp => dp.RedBandPlayer)
+            .Include(dp => dp.GreenBandPlayer).ThenInclude(p => p.PlayerRecord)
+            .Include(dp => dp.RedBandPlayer).ThenInclude(p => p.PlayerRecord)
             .Include(dp => dp.GroupDraw).ThenInclude(gd => gd.Competition)
             .Where(dp => dp.GroupDraw.IsPublished
                 && dp.OrderOfMeritPoints != null

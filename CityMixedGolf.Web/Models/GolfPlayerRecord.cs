@@ -3,7 +3,7 @@ namespace CityMixedGolf.Web.Models;
 /// <summary>
 /// Mirrors [HomeAdmin].[dbo].[GolfPlayers] — the source of truth for player data.
 /// Refreshed via CSV upload in the Admin area.
-/// HandicapIndex and Gender live here, not on GolfPlayer (AspNetUsers).
+/// BandColour is NOT stored here — it is assigned per competition on CompetitionEntry.
 /// </summary>
 public class GolfPlayerRecord
 {
@@ -13,9 +13,6 @@ public class GolfPlayerRecord
 
     /// <summary>"Male" or "Female" — matches the HomeAdmin CSV export format.</summary>
     public string Gender { get; set; } = string.Empty;
-
-    /// <summary>Derived from handicap or set manually by admin after import.</summary>
-    public BandColour BandColour { get; set; } = BandColour.Unassigned;
 
     public bool IsActive { get; set; } = true;
     public DateTime LastUpdated { get; set; } = DateTime.UtcNow;

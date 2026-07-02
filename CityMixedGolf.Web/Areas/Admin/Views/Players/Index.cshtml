@@ -41,7 +41,6 @@
                     <th>Name</th>
                     <th>Gender</th>
                     <th>Handicap</th>
-                    <th>Band</th>
                     <th>Account</th>
                     <th>Active</th>
                     <th></th>
@@ -54,26 +53,7 @@
                     <td class="fw-500">@p.FullName</td>
                     <td style="color:var(--golf-muted)">@p.GenderDisplay</td>
                     <td>@p.HandicapIndex.ToString("F1")</td>
-                    <td>
-                        <form method="post" asp-area="Admin" asp-controller="Players" asp-action="SetBand"
-                              asp-route-id="@p.Id" class="d-flex gap-1 align-items-center">
-                            @Html.AntiForgeryToken()
-                            <select name="band" class="form-select form-select-sm" style="width:90px;border-color:#ccc;font-size:0.8rem"
-                                    onchange="this.form.submit()">
-                                @foreach (var band in Enum.GetValues<CityMixedGolf.Web.Models.BandColour>())
-                                {
-                                    if (p.BandColour == band)
-                                    {
-                                        <option value="@band" selected>@band</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@band">@band</option>
-                                    }
-                                }
-                            </select>
-                        </form>
-                    </td>
+
                     <td>
                         @if (p.LinkedAccount != null)
                         {

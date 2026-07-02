@@ -77,8 +77,9 @@
                             int rank = 1;
                             @foreach (var row in oomLadies)
                             {
+                                var rankColor = rank <= 2 ? "var(--golf-gold)" : "var(--golf-muted)";
                                 <tr>
-                                    <td style="color:@(rank <= 2 ? "var(--golf-gold)" : "var(--golf-muted)");font-weight:500">@rank</td>
+                                    <td style="color:@rankColor;font-weight:500">@rank</td>
                                     <td>@row.Player.FullName</td>
                                     <td class="text-end" style="color:var(--golf-muted);font-size:0.8rem">@row.Best</td>
                                     <td class="text-end fw-500" style="color:var(--golf-green)">@row.Points</td>
@@ -98,8 +99,9 @@
                             int rank = 1;
                             @foreach (var row in oomGents)
                             {
+                                var rankColor = rank <= 2 ? "var(--golf-gold)" : "var(--golf-muted)";
                                 <tr>
-                                    <td style="color:@(rank <= 2 ? "var(--golf-gold)" : "var(--golf-muted)");font-weight:500">@rank</td>
+                                    <td style="color:@rankColor;font-weight:500">@rank</td>
                                     <td>@row.Player.FullName</td>
                                     <td class="text-end" style="color:var(--golf-muted);font-size:0.8rem">@row.Best</td>
                                     <td class="text-end fw-500" style="color:var(--golf-green)">@row.Points</td>

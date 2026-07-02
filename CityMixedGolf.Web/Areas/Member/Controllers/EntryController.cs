@@ -25,7 +25,11 @@ public class EntryController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var player = await _userManager.GetUserAsync(User) ?? throw new UnauthorizedAccessException();
+        var playerId = _userManager.GetUserId(User)!;
+        var player = await _db.Users
+            .Include(p => p.PlayerRecord)
+            .FirstOrDefaultAsync(p => p.Id == playerId)
+            ?? throw new UnauthorizedAccessException();
 
         // This player's entries
         var myEntries = await _db.CompetitionEntries
@@ -86,15 +90,19 @@ public class EntryController : Controller
                 && e.Status == EntryStatus.Entered);
 
         // Eligible partners: opposite gender, have entered this competition
-        var oppositeGender = player.Gender == Gender.Lady ? Gender.Gent : Gender.Lady;
-        var eligiblePartners = await _db.CompetitionEntries
-            .Include(e => e.Player)
+        // Gender is on PlayerRecord — load all entered players then filter in memory
+        var allEnteredPlayers = await _db.CompetitionEntries
+            .Include(e => e.Player).ThenInclude(p => p.PlayerRecord)
             .Where(e => e.CompetitionId == competitionId
                 && e.Status == EntryStatus.Entered
-                && e.Player.Gender == oppositeGender
                 && e.PlayerId != player.Id)
             .Select(e => e.Player)
             .ToListAsync();
+
+        var oppositeGender = player.Gender == Gender.Lady ? Gender.Gent : Gender.Lady;
+        var eligiblePartners = allEnteredPlayers
+            .Where(p => p.Gender == oppositeGender)
+            .ToList();
 
         // Previous partners ordered by most recent
         var previousPartnerIds = await _db.DrawPairs

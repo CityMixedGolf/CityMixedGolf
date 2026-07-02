@@ -43,13 +43,15 @@
                     <td>@comp.EntryCloseDate.ToString("dd MMM yyyy")</td>
                     <td>@comp.Entries.Count(e => e.Status == EntryStatus.Entered)</td>
                     <td>
-                        <span class="badge rounded-pill @(comp.Status switch {
-                            CompetitionStatus.Open => "badge-open",
-                            CompetitionStatus.ResultsEntered => "bg-success text-white",
-                            CompetitionStatus.DrawPublished => "badge-override",
-                            CompetitionStatus.Draft => "badge-closed",
-                            _ => "badge-closed"
-                        }) px-2 py-1" style="font-size:0.75rem">
+                        @{
+                            var statusBadge = comp.Status switch {
+                                CompetitionStatus.Open => "badge-open",
+                                CompetitionStatus.ResultsEntered => "bg-success text-white",
+                                CompetitionStatus.DrawPublished => "badge-override",
+                                _ => "badge-closed"
+                            };
+                        }
+                        <span class="badge rounded-pill @statusBadge px-2 py-1" style="font-size:0.75rem">
                             @comp.Status
                         </span>
                     </td>

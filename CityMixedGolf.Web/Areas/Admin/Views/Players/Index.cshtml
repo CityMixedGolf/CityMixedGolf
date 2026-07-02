@@ -62,7 +62,14 @@
                                     onchange="this.form.submit()">
                                 @foreach (var band in Enum.GetValues<CityMixedGolf.Web.Models.BandColour>())
                                 {
-                                    <option value="@band" @(p.BandColour == band ? "selected" : "")>@band</option>
+                                    if (p.BandColour == band)
+                                    {
+                                        <option value="@band" selected>@band</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@band">@band</option>
+                                    }
                                 }
                             </select>
                         </form>

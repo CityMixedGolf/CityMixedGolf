@@ -5,6 +5,7 @@
     var partners = (List<GolfPlayer>)ViewBag.EligiblePartners;
     var prevIds = (List<string>)ViewBag.PreviousPartnerIds;
     var defaultPartnerId = (string?)ViewBag.DefaultPartnerId;
+    var partnerBands = (Dictionary<string, BandColour>)ViewBag.PartnerBands;
     var isAmend = ViewBag.ExistingEntry != null;
 }
 
@@ -56,7 +57,7 @@
                                 </div>
                                 <div class="flex-grow-1">
                                     <div class="fw-500" id="psel-name">@def.FullName</div>
-                                    <div style="font-size:0.75rem;color:var(--golf-muted)" id="psel-meta">Hcp @def.HandicapIndex.ToString("F1") &middot; @def.BandColour band</div>
+                                    <div style="font-size:0.75rem;color:var(--golf-muted)" id="psel-meta">Hcp @def.HandicapIndex.ToString("F1") &middot; @partnerBands[def.Id] band</div>
                                 </div>
                                 @if (prevIds.Contains(def.Id))
                                 {
@@ -70,7 +71,7 @@
                                     <div style="font-size:0.7rem;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.05em;padding:0.25rem 0.5rem">Previous partners — most recent first</div>
                                     @foreach (var p in partners.Where(p => prevIds.Contains(p.Id)).OrderBy(p => prevIds.IndexOf(p.Id)))
                                     {
-                                        <div class="partner-option @(p.Id == defaultPartnerId ? "active" : "")" onclick="pickPartner(this, @p.Id, @p.FullName, @p.HandicapIndex.ToString("F1"), @p.BandColour, true)">
+                                        <div class="partner-option @(p.Id == defaultPartnerId ? "active" : "")" onclick="pickPartner(this, @p.Id, @p.FullName, @p.HandicapIndex.ToString("F1"), @partnerBands[p.Id], true)">
                                             <div class="partner-avatar" style="width:26px;height:26px;font-size:0.7rem">@p.FirstName[0]@p.LastName[0]</div>
                                             <span class="flex-grow-1">@p.FullName</span>
                                             <span style="font-size:0.75rem;color:var(--golf-muted)">@p.HandicapIndex.ToString("F1")</span>
@@ -83,7 +84,7 @@
                                     <div style="font-size:0.7rem;color:var(--golf-muted);text-transform:uppercase;letter-spacing:0.05em;padding:0.25rem 0.5rem;border-top:1px solid #ede8e0;margin-top:0.25rem">Other eligible players entered</div>
                                     @foreach (var p in partners.Where(p => !prevIds.Contains(p.Id)))
                                     {
-                                        <div class="partner-option" onclick="pickPartner(this, @p.Id, @p.FullName, @p.HandicapIndex.ToString("F1"), @p.BandColour, false)">
+                                        <div class="partner-option" onclick="pickPartner(this, @p.Id, @p.FullName, @p.HandicapIndex.ToString("F1"), @partnerBands[p.Id], false)">
                                             <div class="partner-avatar" style="width:26px;height:26px;font-size:0.7rem">@p.FirstName[0]@p.LastName[0]</div>
                                             <span class="flex-grow-1">@p.FullName</span>
                                             <span style="font-size:0.75rem;color:var(--golf-muted)">@p.HandicapIndex.ToString("F1")</span>

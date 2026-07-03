@@ -61,17 +61,6 @@ public class PlayersController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> SetBand(int id, BandColour band)
-    {
-        var player = await _db.GolfPlayerRecords.FindAsync(id);
-        if (player == null) return NotFound();
-        player.BandColour = band;
-        await _db.SaveChangesAsync();
-        return Ok();
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleActive(int id)
     {
         var player = await _db.GolfPlayerRecords.FindAsync(id);

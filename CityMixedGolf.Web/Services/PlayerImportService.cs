@@ -106,7 +106,6 @@ public class PlayerImportService : IPlayerImportService
                     FullName = fullName,
                     HandicapIndex = handicap,
                     Gender = gender,
-                    BandColour = DeriveBand(handicap),
                     IsActive = true,
                     LastUpdated = DateTime.UtcNow
                 };
@@ -115,15 +114,11 @@ public class PlayerImportService : IPlayerImportService
             }
             else
             {
-                // Update existing — preserve BandColour if manually overridden
                 record.FullName = fullName;
                 record.HandicapIndex = handicap;
                 record.Gender = gender;
                 record.IsActive = true;
                 record.LastUpdated = DateTime.UtcNow;
-                // Only auto-update band if still Unassigned
-                if (record.BandColour == BandColour.Unassigned)
-                    record.BandColour = DeriveBand(handicap);
                 result.Updated++;
             }
         }
@@ -131,13 +126,6 @@ public class PlayerImportService : IPlayerImportService
         await _db.SaveChangesAsync();
         return result;
     }
-
-    /// <summary>
-    /// Default band assignment: handicap index 18.0 or under = Green, over 18 = Red.
-    /// Admin can override per player after import.
-    /// </summary>
-    private static BandColour DeriveBand(decimal handicap) =>
-        handicap <= 18.0m ? BandColour.Green : BandColour.Red;
 
     /// <summary>Handles quoted CSV fields containing commas.</summary>
     private static string[] ParseCsvLine(string line)

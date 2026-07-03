@@ -91,18 +91,20 @@ public class EntryController : Controller
 
         // Eligible partners: opposite gender, have entered this competition
         // Gender is on PlayerRecord — load all entered players then filter in memory
-        var allEnteredPlayers = await _db.CompetitionEntries
+        var enteredEntries = await _db.CompetitionEntries
             .Include(e => e.Player).ThenInclude(p => p.PlayerRecord)
             .Where(e => e.CompetitionId == competitionId
                 && e.Status == EntryStatus.Entered
                 && e.PlayerId != player.Id)
-            .Select(e => e.Player)
             .ToListAsync();
 
         var oppositeGender = player.Gender == Gender.Lady ? Gender.Gent : Gender.Lady;
-        var eligiblePartners = allEnteredPlayers
-            .Where(p => p.Gender == oppositeGender)
+        var eligiblePartners = enteredEntries
+            .Where(e => e.Player.Gender == oppositeGender)
+            .Select(e => e.Player)
             .ToList();
+
+        var partnerBands = enteredEntries.ToDictionary(e => e.PlayerId, e => e.BandColour);
 
         // Previous partners ordered by most recent
         var previousPartnerIds = await _db.DrawPairs
@@ -129,6 +131,7 @@ public class EntryController : Controller
         ViewBag.Competition = competition;
         ViewBag.ExistingEntry = existing;
         ViewBag.EligiblePartners = sortedPartners;
+        ViewBag.PartnerBands = partnerBands;
         ViewBag.PreviousPartnerIds = previousPartnerIds;
         ViewBag.DefaultPartnerId = defaultPartnerId;
 

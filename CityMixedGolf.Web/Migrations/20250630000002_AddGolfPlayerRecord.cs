@@ -1,9 +1,13 @@
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using CityMixedGolf.Web.Data;
 
 #nullable disable
 
 namespace CityMixedGolf.Web.Migrations
 {
+    [DbContext(typeof(ApplicationDbContext))]
+    [Migration("20250630000002_AddGolfPlayerRecord")]
     public partial class AddGolfPlayerRecord : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
